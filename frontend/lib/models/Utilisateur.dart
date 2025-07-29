@@ -1,0 +1,34 @@
+class Utilisateur{
+  final String nom_user;
+  final String email;
+  final String role;
+  final String token;
+
+  Utilisateur({
+    required this.token,
+    required this.nom_user,
+    required this.email,
+    required this.role,
+    
+  });
+
+  factory Utilisateur.fromJson(Map<String, dynamic> json) {
+    return Utilisateur(
+      token: json['token'],
+      nom_user: json['nom_user'],
+      email: json['email'],
+      role: json['role'],
+     
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      token: token,
+      nom_user: nom_user,
+      email: email,
+      role: role,
+      
+    };
+  }
+}

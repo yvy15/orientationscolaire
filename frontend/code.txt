@@ -1,0 +1,541 @@
+//register_screen.dart
+
+
+import 'package:flutter/material.dart';
+import 'package:frontend/screens/login_student_scolarise.dart';
+import 'package:frontend/screens/login_student_independant.dart';
+import 'package:frontend/screens/login_school.dart';
+import 'package:frontend/utils/helpers/snackbar_helper.dart';
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+  String? selectedRole;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController matriculeController = TextEditingController();
+  final TextEditingController niveauController = TextEditingController();
+  final TextEditingController etablissementController = TextEditingController();
+
+  void handleRegistration() {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (selectedRole == null) {
+      SnackbarHelper.showError(context, 'Veuillez choisir un rôle.');
+      return;
+    }
+
+    switch (selectedRole) {
+      case 'Apprenant scolarisé':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginStudentScolarise(),
+          ),
+        );
+        break;
+      case 'Apprenant indépendant':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginStudentIndependant(),
+          ),
+        );
+        break;
+      case 'Établissement':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginSchool(),
+          ),
+        );
+        break;
+      default:
+        SnackbarHelper.showError(context, 'Rôle inconnu.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Inscription')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              DropdownButtonFormField<String>(
+                value: selectedRole,
+                decoration: const InputDecoration(
+                  labelText: 'Choisir votre rôle',
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'Apprenant scolarisé',
+                    child: Text('Apprenant scolarisé'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Apprenant indépendant',
+                    child: Text('Apprenant indépendant'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Établissement',
+                    child: Text('Établissement'),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    selectedRole = value;
+                  });
+                },
+                validator: (value) =>
+                    value == null ? 'Ce champ est obligatoire' : null,
+              ),
+              const SizedBox(height: 16),
+              if (selectedRole == 'Apprenant scolarisé') ...[
+                TextFormField(
+                  controller: matriculeController,
+                  decoration: const InputDecoration(labelText: 'Matricule'),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Champ obligatoire' : null,
+                ),
+                TextFormField(
+                  controller: etablissementController,
+                  decoration:
+                      const InputDecoration(labelText: 'Nom de l’établissement'),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Champ obligatoire' : null,
+                ),
+              ] else if (selectedRole == 'Apprenant indépendant') ...[
+                TextFormField(
+                  controller: niveauController,
+                  decoration: const InputDecoration(labelText: 'Niveau'),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Champ obligatoire' : null,
+                ),
+              ],
+              if (selectedRole != null) ...[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Champ obligatoire' : null,
+                ),
+                TextFormField(
+                  controller: passwordController,
+                  decoration: const InputDecoration(labelText: 'Mot de passe'),
+                  obscureText: true,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Champ obligatoire' : null,
+                ),
+              ],
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: handleRegistration,
+                child: const Text('S’inscrire'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+//login_student_scolarise.dart
+
+import 'package:flutter/material.dart';
+import '../components/app_text_form_field.dart';
+import '../utils/helpers/snackbar_helper.dart';
+import '../values/app_colors.dart';
+
+class LoginStudentScolariseScreen extends StatefulWidget {
+  const LoginStudentScolariseScreen({super.key});
+
+  @override
+  State<LoginStudentScolariseScreen> createState() => _LoginStudentScolariseScreenState();
+}
+
+class _LoginStudentScolariseScreenState extends State<LoginStudentScolariseScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _matriculeController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _schoolController = TextEditingController();
+
+  void _login() {
+    if (_formKey.currentState!.validate()) {
+      final matricule = _matriculeController.text.trim();
+      final password = _passwordController.text.trim();
+      final school = _schoolController.text.trim();
+
+      // TODO: Envoyer les données au backend pour validation
+      showSuccessMessage(context, 'Connexion réussie pour $matricule');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Connexion Apprenant Scolarisé", style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 32),
+
+                  AppTextFormField(
+                    labelText: "Matricule",
+                    controller: _matriculeController,
+                    validator: (value) => value!.isEmpty ? "Veuillez entrer votre matricule" : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  AppTextFormField(
+                    labelText: "Mot de passe",
+                    controller: _passwordController,
+                    isPassword: true,
+                    validator: (value) => value!.isEmpty ? "Veuillez entrer votre mot de passe" : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  AppTextFormField(
+                    labelText: "Établissement",
+                    controller: _schoolController,
+                    validator: (value) => value!.isEmpty ? "Veuillez entrer le nom de votre établissement" : null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  ElevatedButton(
+                    onPressed: _login,
+                    child: const Text("Se connecter"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+//login_student_independant.dart
+
+
+
+import 'package:flutter/material.dart';
+import '../components/app_text_form_field.dart';
+import '../utils/helpers/snackbar_helper.dart';
+import '../values/app_colors.dart';
+
+class LoginStudentIndependantScreen extends StatefulWidget {
+  const LoginStudentIndependantScreen({super.key});
+
+  @override
+  State<LoginStudentIndependantScreen> createState() => _LoginStudentIndependantScreenState();
+}
+
+class _LoginStudentIndependantScreenState extends State<LoginStudentIndependantScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _niveauController = TextEditingController();
+
+  void _login() {
+    if (_formKey.currentState!.validate()) {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      final niveau = _niveauController.text.trim();
+
+      // TODO: Envoyer les données au backend pour validation
+      showSuccessMessage(context, 'Connexion réussie pour $email');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Connexion Apprenant Indépendant", style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 32),
+
+                  AppTextFormField(
+                    labelText: "Adresse e-mail",
+                    controller: _emailController,
+                    validator: (value) => value!.isEmpty ? "Veuillez entrer votre e-mail" : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  AppTextFormField(
+                    labelText: "Mot de passe",
+                    controller: _passwordController,
+                    isPassword: true,
+                    validator: (value) => value!.isEmpty ? "Veuillez entrer votre mot de passe" : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  AppTextFormField(
+                    labelText: "Niveau",
+                    controller: _niveauController,
+                    validator: (value) => value!.isEmpty ? "Veuillez entrer votre niveau" : null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  ElevatedButton(
+                    onPressed: _login,
+                    child: const Text("Se connecter"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+//login_school.dart
+
+
+
+
+import 'package:flutter/material.dart';
+import '../components/app_text_form_field.dart';
+import '../utils/helpers/snackbar_helper.dart';
+import '../values/app_colors.dart';
+
+class LoginSchoolScreen extends StatefulWidget {
+  const LoginSchoolScreen({super.key});
+
+  @override
+  State<LoginSchoolScreen> createState() => _LoginSchoolScreenState();
+}
+
+class _LoginSchoolScreenState extends State<LoginSchoolScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  void _login() {
+    if (_formKey.currentState!.validate()) {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
+      // TODO: Envoyer les données au backend pour vérification
+      showSuccessMessage(context, 'Connexion établissement réussie pour $email');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Connexion Établissement", style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 32),
+
+                  AppTextFormField(
+                    labelText: "Adresse e-mail",
+                    controller: _emailController,
+                    validator: (value) => value!.isEmpty ? "Veuillez entrer votre e-mail" : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  AppTextFormField(
+                    labelText: "Mot de passe",
+                    controller: _passwordController,
+                    isPassword: true,
+                    validator: (value) => value!.isEmpty ? "Veuillez entrer votre mot de passe" : null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  ElevatedButton(
+                    onPressed: _login,
+                    child: const Text("Se connecter"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+//app_route.dart
+
+
+
+import 'package:flutter/material.dart';
+import '../screens/register_screen.dart';
+import '../screens/login_apprenant_scolarise.dart';
+import '../screens/login_apprenant_independant.dart';
+import '../screens/login_school.dart';
+
+class AppRoutes {
+  static const String register = '/register';
+  static const String loginApprenantScolarise = '/login-apprenant-scolarise';
+  static const String loginApprenantIndependant = '/login-apprenant-independant';
+  static const String loginSchool = '/login-school';
+
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case register:
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
+
+      case loginApprenantScolarise:
+        return MaterialPageRoute(builder: (_) => const LoginApprenantScolariseScreen());
+
+      case loginApprenantIndependant:
+        return MaterialPageRoute(builder: (_) => const LoginApprenantIndependantScreen());
+
+      case loginSchool:
+        return MaterialPageRoute(builder: (_) => const LoginSchoolScreen());
+
+      default:
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            body: Center(child: Text('Aucune route trouvée pour ${settings.name}')),
+          ),
+        );
+    }
+  }
+}
+
+
+
+//main.dart
+
+
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'login_register_app.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(statusBarIconBrightness: Brightness.light),
+  );
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then(
+    (_) => runApp(const LoginRegisterApp()),
+  );
+}
+
+
+
+//app string.dart 
+
+
+class AppStrings {
+  // Général
+  static const String appName = "Orientation Scolaire";
+  static const String bienvenue = "Bienvenue";
+  static const String continuer = "Continuer";
+  static const String retour = "Retour";
+  static const String annuler = "Annuler";
+  static const String confirmer = "Confirmer";
+
+  // Inscription
+  static const String inscription = "Inscription";
+  static const String inscrire = "S'inscrire";
+  static const String dejaCompte = "Vous avez déjà un compte ?";
+  static const String choixRole = "Choisissez votre rôle";
+  static const String matricule = "Matricule";
+  static const String niveau = "Niveau";
+  static const String nomEtablissement = "Nom de l'établissement";
+  static const String region = "Région";
+  static const String pasDeCompte = "Vous n'avez pas de compte ?";
+  static const String etablissement = "Établissement";
+  static const String apprenantScolarise = "Apprenant Scolarisé";
+  static const String apprenantIndependant = "Apprenant Indépendant";
+
+  // Connexion
+  static const String connexion = "Connexion";
+  static const String seConnecter = "Se connecter";
+  static const String motDePasse = "Mot de passe";
+  static const String motDePasseOublie = "Mot de passe oublié ?";
+  static const String email = "Adresse e-mail";
+  static const String choixEtablissement = "Choisissez votre établissement";
+
+  // Étiquettes & champs
+  static const String entrezMatricule = "Entrez votre matricule";
+  static const String entrezMotDePasse = "Entrez votre mot de passe";
+  static const String entrezEmail = "Entrez votre adresse e-mail";
+  static const String entrezNom = "Entrez le nom";
+  static const String entrezNiveau = "Entrez votre niveau";
+  static const String entrezRegion = "Entrez la région";
+
+  // Boutons & actions
+  static const String valider = "Valider";
+  static const String suivant = "Suivant";
+  static const String precedent = "Précédent";
+  static const String terminer = "Terminer";
+
+  // Erreurs et messages
+  static const String champsObligatoire = "Ce champ est obligatoire";
+  static const String motDePasseCourt = "Le mot de passe est trop court";
+  static const String emailInvalide = "Adresse e-mail invalide";
+
+  // Application
+  static const String loginAndRegister = "Connexion & Inscription";
+}
+
+
+
+
+
+login_screen.dart → contient LoginPage
+
+register_screen.dart → contient RegisterPage
+
+login_schooled_learner_screen.dart → contient LoginSchooledLearnerPage
+
+login_independent_learner_screen.dart → contient LoginIndependentLearnerPage
+
+login_school_screen.dart → contient LoginSchoolPage
