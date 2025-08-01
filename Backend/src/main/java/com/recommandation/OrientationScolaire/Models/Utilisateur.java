@@ -29,9 +29,11 @@ public class Utilisateur {
     }
 
     public enum Role{
+
         Etablissement,
         Admin,
-        Apprenant
+        Apprenant1,
+        Apprenant2,
     }
 
     @Enumerated(EnumType.STRING)

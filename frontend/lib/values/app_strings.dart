@@ -22,6 +22,10 @@ class AppStrings {
   static const String pleaseEnterName = "Veuillez entrer votre nom";
   static const String invalidName = "Nom invalide";
 
+  static const String matricule= "matricule";
+  static const String pleaseEntermatricule = "Veuillez entrer votre matricule";
+  static const String invalidmatricule = "matricule invalide";
+
   static const String email = "Email";
   static const String pleaseEnterEmailAddress = "Veuillez entrer votre adresse email";
   static const String invalidEmailAddress = "Adresse email invalide";

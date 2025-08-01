@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/services/Authservices.dart';
-import 'package:frontend/utils/helpers/snackbar_helper.dart';
+//import 'package:frontend/utils/helpers/snackbar_helper.dart';
 
 import '../components/app_text_form_field.dart';
 import '../utils/common_widgets/gradient_background.dart';
@@ -232,12 +233,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: Text('Établissement'),
                     ),
                     DropdownMenuItem(
-                      value: 'Apprenant',
+                      value: 'Apprenant1',
                       child: Text('Apprenant scolarisé'),
                     ),
                     DropdownMenuItem(
-                      value: 'Independant',
+                      value: 'Apprenant2',
                       child: Text('Apprenant indépendant'),
+                    ),
+                     DropdownMenuItem(
+                      value: 'Admin',
+                      child: Text('Admin'),
                     ),
                   ],
                   onChanged: (value) {
@@ -254,15 +259,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     valueListenable: fieldValidNotifier,
                     builder: (_, isValid, __) {
                       return FilledButton(
-                        onPressed: isValid
+                         onPressed: isValid
                             ? () {
-                                RegisterPage();
-                                SnackbarHelper.showSnackBar(
-                                  AppStrings.registrationComplete,
-                                );
-
+                                submitRegister(); // ← Appelle ta fonction d’inscription
                               }
                             : null,
+
                         child: const Text(AppStrings.register),
                       );
                     },
@@ -280,43 +282,58 @@ class _RegisterPageState extends State<RegisterPage> {
                 style: AppTheme.bodySmall.copyWith(color: Colors.black),
               ),
               TextButton(
-                onPressed: () => NavigationHelper.pushReplacementNamed(
-                  AppRoutes.login,
+  onPressed: () {
+    if (selectedRole == null || selectedRole!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Veuillez sélectionner un rôle d'abord"),
+        ),
+      );
+      return;
+    }
+
+    Navigator.pushReplacementNamed(context, '/login');
+  },
+  child: Text("se connecter"),
+),
+            ]
                 ),
-                child: const Text(AppStrings.login),
-              ),
-            ],
+        ]
           ),
-        ],
+    );
+      
+  }
+void submitRegister() async {
+  final authService = AuthService();
+
+  final result = await authService.inscrire(
+    nom_userController.text,
+    emailController.text,
+    mot_passeController.text,
+    selectedRole!,
+  );
+
+  if (result['success']) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Inscription réussie. Connectez-vous.'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    Future.delayed(Duration(milliseconds: 400), () {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
+      }
+    });
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['message'] ?? 'Échec de l’inscription.'),
+        backgroundColor: Colors.red,
       ),
     );
   }
+}
 
-   void RegisterPage() async {
-    final authService = AuthService();
-
-    final result = await authService.inscrire(
-      nom_userController.text,
-      emailController.text,
-      mot_passeController.text,
-      selectedRole!,
-    );
-
-    if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Inscription réussie. Connectez-vous.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pushNamed(context, 'login');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Échec de l’inscription.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 }

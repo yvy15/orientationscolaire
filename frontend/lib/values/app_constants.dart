@@ -11,4 +11,8 @@ class AppConstants {
 
   static final RegExp passwordRegex = RegExp(r'^.{6,}$');
 
+static final RegExp matriculeRegex = RegExp(r'^.{6,}$');
+
+static final RegExp mot_passe1Regex = RegExp(r'^.{6,}$');
+
 }

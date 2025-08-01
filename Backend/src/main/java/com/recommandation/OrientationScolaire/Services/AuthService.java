@@ -37,7 +37,7 @@ public class AuthService {
 
     
     public AuthResponse login_screen(String email, String mot_passe) {
-        Utilisateur utilisateur = UtilisateurRepository.findByNom_user(email)
+        Utilisateur utilisateur = UtilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
         if (!passwordEncoder.matches(mot_passe, utilisateur.getMot_passe())) {

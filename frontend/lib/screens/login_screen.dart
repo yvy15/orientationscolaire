@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:frontend/screens/admin/admin.dart';
+import 'package:frontend/screens/apprenant1/apprenant1.dart';
+import 'package:frontend/screens/apprenant2/apprenant2.dart';
+import 'package:frontend/screens/etablissment/etablissement.dart';
+import 'package:frontend/services/Authservices.dart';
 import 'package:frontend/utils/helpers/snackbar_helper.dart';
 import 'package:frontend/values/app_regex.dart';
 
@@ -148,6 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                       return FilledButton(
                         onPressed: isValid
                             ? () {
+                                seconnecter();
                                 SnackbarHelper.showSnackBar(
                                   AppStrings.loggedIn,
                                 );
@@ -225,4 +231,44 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
+   void seconnecter() async {
+    try {
+      final authService = AuthService();
+      final utilisateur = await authService.seconnecter(emailController.text, passwordController.text);
+
+      if (utilisateur != null) {
+        // Redirection selon le rôle
+        switch (utilisateur.role) {
+          case 'Etablissement':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => EtablissementDashboard(utilisateur : utilisateur)));
+            break;
+          case 'Admin':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboard(utilisateur : utilisateur)));
+            break;
+          case 'Apprenant1':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => Apprenant1Dashboard(utilisateur : utilisateur)));
+            break;
+          case 'Apprenant2':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => Apprenant2Dashboard(utilisateur : utilisateur)));
+            break;
+          default:
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Rôle inconnu.')),
+            );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Échec de la connexion.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : ${e.toString()}')),
+      );
+    }
+  }
+
+
+
 }
