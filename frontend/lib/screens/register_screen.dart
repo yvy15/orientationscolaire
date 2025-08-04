@@ -321,7 +321,7 @@ void submitRegister() async {
       ),
     );
 
-    Future.delayed(Duration(milliseconds: 400), () {
+    Future.delayed(Duration(milliseconds: 800), () {
       if (mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.login);
       }

@@ -19,7 +19,7 @@ class AuthService {
           'email': email,
           'mot_passe': mot_passe,
         }),
-      ).timeout(Duration(seconds: 10)); // ← timeout ici //temps d'attente pour que le backend renvoie les informations attendues
+      ).timeout(Duration(seconds: 20)); // ← timeout ici //temps d'attente pour que le backend renvoie les informations attendues
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -73,7 +73,7 @@ class AuthService {
           'mot_passe': mot_passe,
           'role': role,
         }),
-      ).timeout(Duration(seconds: 10));
+      ).timeout(Duration(seconds: 20));
 
       if (response.statusCode == 201) {
         return {'success': true};

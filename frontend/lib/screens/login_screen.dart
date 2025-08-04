@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:frontend/screens/admin/admin.dart';
-import 'package:frontend/screens/apprenant1/apprenant1.dart';
-import 'package:frontend/screens/apprenant2/apprenant2.dart';
-import 'package:frontend/screens/etablissment/etablissement.dart';
+import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/screens/admin/layout_administrateur.dart';
+import 'package:frontend/screens/apprenant1/dashboard_layout.dart';
+import 'package:frontend/screens/apprenant2/dashboard_layout.dart';
+import 'package:frontend/screens/etablissment/dashboard_layout.dart';
 import 'package:frontend/services/Authservices.dart';
 import 'package:frontend/utils/helpers/snackbar_helper.dart';
 import 'package:frontend/values/app_regex.dart';
-
 import '../components/app_text_form_field.dart';
 import '../resources/resources.dart';
 import '../utils/common_widgets/gradient_background.dart';
@@ -241,16 +241,16 @@ class _LoginPageState extends State<LoginPage> {
         // Redirection selon le rôle
         switch (utilisateur.role) {
           case 'Etablissement':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => EtablissementDashboard(utilisateur : utilisateur)));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => DashboardLayout(utilisateur : utilisateur)));
             break;
           case 'Admin':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboard(utilisateur : utilisateur)));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => LayoutAdministrateur(utilisateur : utilisateur)));
             break;
           case 'Apprenant1':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => Apprenant1Dashboard(utilisateur : utilisateur)));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => DashboardLayoutApprenant(utilisateur : utilisateur)));
             break;
           case 'Apprenant2':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => Apprenant2Dashboard(utilisateur : utilisateur)));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => DashboardLayoutApprenant1(utilisateur : utilisateur)));
             break;
           default:
             ScaffoldMessenger.of(context).showSnackBar(
@@ -272,3 +272,4 @@ class _LoginPageState extends State<LoginPage> {
 
 
 }
+

@@ -4,6 +4,7 @@ class AppStrings {
   static const String loginAndRegister = "Interface de Connexion et d'Inscription";
   static const String uhOhPageNotFound = "Oups !\nPage introuvable";
   static const String register = "S'inscrire";
+  static const String dashboard = "dashboard";
   static const String login = "Se connecter";
   static const String createYourAccount = "Créez votre compte";
   static const String doNotHaveAnAccount = "Vous n'avez pas de compte ?";

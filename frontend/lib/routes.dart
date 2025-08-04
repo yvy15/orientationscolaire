@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/screens/etablissment/dashboard_layout.dart';
+import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/screens/register_screen.dart';
+import 'package:frontend/utils/common_widgets/invalid_route.dart';
+import 'package:frontend/values/app_routes.dart';
 
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
-import 'utils/common_widgets/invalid_route.dart';
-import 'values/app_routes.dart';
 
 class Routes {
   const Routes._();
@@ -27,8 +29,15 @@ class Routes {
       case AppRoutes.register:
         return getRoute(widget: const RegisterPage());
 
-      /// An invalid route. User shouldn't see this,
-      /// it's for debugging purpose only.
+      case AppRoutes.dashboard:
+      final utilisateur = settings.arguments;
+      if (utilisateur is Utilisateur) {
+        return getRoute(widget: DashboardLayout(utilisateur: utilisateur));
+      } else {
+        return getRoute(widget: const InvalidRoute());
+      }
+
+
       default:
         return getRoute(widget: const InvalidRoute());
     }
