@@ -11,6 +11,6 @@ public class AuthResponse {
     private String nom_user;
     private String email;
     private String role;
-
+    private boolean estComplet;
 
 }

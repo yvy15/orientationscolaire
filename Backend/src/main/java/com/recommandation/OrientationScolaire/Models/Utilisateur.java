@@ -4,39 +4,47 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
 public class Utilisateur {
 
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
-    private  Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(nullable = false, unique = false, length = 120)
-    private  String nom_user;
-
-    @Column(nullable = false, unique = true)
-    private  String email;
+    @Column(nullable = false, length = 120)
+    private String nom_user;
 
     @Column(nullable = false, unique = true)
-    private  String mot_passe;
+    private String email;
 
-    public void setCreatedAt(LocalDateTime now) {
+    @Column(nullable = false)
+    private String mot_passe;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @Column(name = "est_complet")
+    private Boolean estComplet;
+
+
+    public boolean isEstComplet() {
+        return estComplet != null && estComplet;
     }
 
-    public void setUpdatedAt(LocalDateTime now) {
-    }
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    public enum Role{
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
+    public enum Role {
         Etablissement,
         Admin,
         Apprenant1,
         Apprenant2,
     }
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
 }

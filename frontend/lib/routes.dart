@@ -42,14 +42,13 @@ class Routes {
       final args = settings.arguments as Map<String, dynamic>?;
       final secteur = args?['secteur'] ?? '';
       final metiers = args?['metiers'] ?? <String>[];
-      final autreMetier=args?['autreMetier'] ?? '';
-      final niveauEtude=args?['niveauEtude'] ?? '';
+      final niveau = args?['niveau'] ?? '';
+      
       return getRoute(
         widget: TestPsychotechniqueScreen(
           secteur: secteur,
           metiers: metiers,
-          autreMetier: autreMetier,
-          niveauEtude: niveauEtude,
+          niveau: '',
         ),
       );
 

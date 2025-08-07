@@ -28,16 +28,23 @@ public class AuthController {
 
 
     @PostMapping("/inscrire")
-    public ResponseEntity<Map<String, String>> inscrire(@RequestBody Utilisateur utilisateur){
+    public ResponseEntity<Map<String, String>> inscrire(@RequestBody Utilisateur utilisateur) {
         System.out.println("Requête reçue : " + utilisateur);
-            utilisateur.setMot_passe(passwordEncoder.encode(utilisateur.getMot_passe()));
-            utilisateurRepository.save(utilisateur);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(Map.of("message", "Inscription réussie"));
-        }
+
+        utilisateur.setMot_passe(passwordEncoder.encode(utilisateur.getMot_passe()));
+
+        // 🆕 Initialisation de estComplet à false
+        utilisateur.setEstComplet(false);
+
+        utilisateurRepository.save(utilisateur);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("message", "Inscription réussie"));
+    }
 
 
-        @PostMapping("/login")
+
+    @PostMapping("/login")
         public ResponseEntity<?> login_screen (@RequestBody AuthRequest request){
             try {
                 AuthResponse token = authService.login_screen(request.getEmail(), request.getMot_passe());

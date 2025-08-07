@@ -32,7 +32,7 @@ public class TestPsychotechniqueController {
             Utilisateur utilisateur = optionalUtilisateur.get();
 
             Apprenant apprenant = new Apprenant();
-            apprenant.setNiveau(testRequest.getNiveauetude());
+            apprenant.setNiveau(testRequest.getNiveau());
             apprenant.setSecteur_activite(testRequest.getSecteur());
             apprenant.setUtilisateur(utilisateur);
 
@@ -41,6 +41,10 @@ public class TestPsychotechniqueController {
             apprenant.setEtablissement(testRequest.getNomEtablissement());
 
             apprenantRepository.save(apprenant);
+
+            // ✅ Marquer le profil comme complet
+            utilisateur.setEstComplet(true);
+            utilisateurRepository.save(utilisateur);
 
             return ResponseEntity.ok("Données de l'apprenant enregistrées avec succès");
         } else {
@@ -65,9 +69,7 @@ public class TestPsychotechniqueController {
 
         Apprenant apprenant = apprenantOpt.get();
 
-        boolean complet = apprenant.getMatricule() != null &&
-                apprenant.getEtablissement() != null &&
-                apprenant.getSecteur_activite() != null;
+        boolean complet = apprenant.getSecteur_activite() != null;
 
         // Exemples de métiers par secteur
         Map<String, List<String>> metiersParSecteur = Map.of(
@@ -114,8 +116,15 @@ public class TestPsychotechniqueController {
         apprenant.setListeMetiers(metiers); // Assure-toi que ce champ existe (List<String>)
 
         apprenantRepository.save(apprenant);
+
+        // ✅ Marquer le profil comme complet
+        utilisateur.setEstComplet(true);
+        utilisateurRepository.save(utilisateur);
+
         return ResponseEntity.ok("Profil enregistré avec succès");
     }
+
+
 
 
 }

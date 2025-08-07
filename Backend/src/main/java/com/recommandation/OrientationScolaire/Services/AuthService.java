@@ -48,7 +48,8 @@ public class AuthService {
                 token,
                 utilisateur.getNom_user(),
                 utilisateur.getEmail(),
-                utilisateur.getRole().toString()
+                utilisateur.getRole().toString(),
+                utilisateur.isEstComplet()
         );
 
 

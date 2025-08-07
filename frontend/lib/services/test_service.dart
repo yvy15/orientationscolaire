@@ -30,7 +30,20 @@ class TestService {
   static const String baseUrl = "http://localhost:8080/api/test";
 
   // ✅ CORRECTION ICI : Ne prendre que l'email
-  static Future<Map<String, dynamic>> verifierProfil(String email, {required String role, required List<String> metiers, required String autreMetier, required String secteur, required String matricule, String? etablissement}) async {
+  static Future<Map<String, dynamic>> verifierProfil(String email, {required String role, required List<String> metiers, required String secteur, required String matricule, String? etablissement, required String niveau}) async {
+    print("$email");
+    final url = Uri.parse("$baseUrl/estComplet/$email");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Erreur lors de la vérification du profil");
+    }
+  }
+
+  static Future<void> enregistrerProfil1({required String email, required String role, String? secteur, required List<String> metiers, required String niveau}) async {
+
     final url = Uri.parse("$baseUrl/estComplet/$email");
     final response = await http.get(url);
 
@@ -42,12 +55,12 @@ class TestService {
   }
 
   // Utilisé si tu veux créer une route spéciale d’enregistrement
-  static Future<void> enregistrerProfil({
+ /* static Future<void> enregistrerProfil({
     required String email,
     required String role,
     required String secteur,
     required List<String> metiers,
-    required String autreMetier,
+    
     required String matricule,
     required String etablissement,
   }) async {
@@ -58,7 +71,7 @@ class TestService {
       "role": role,
       "secteur": secteur,
       "metiers": metiers,
-      "autreMetier": autreMetier,
+    
       "matricule": matricule,
       "etablissement": etablissement,
     });
@@ -72,5 +85,5 @@ class TestService {
     if (response.statusCode != 200) {
       throw Exception("Erreur lors de l'enregistrement du profil");
     }
-  }
+  }*/
 }

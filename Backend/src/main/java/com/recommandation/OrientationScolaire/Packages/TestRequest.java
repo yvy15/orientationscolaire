@@ -9,8 +9,7 @@ public class TestRequest {
     private String email;
     private String secteur;
     private List<String> metiers;
-    private String autremetier;
-    private String niveauetude;
+    private String niveau;
 
     // NOUVEAUX CHAMPS AJOUTÉS
     private String matricule;

@@ -3,12 +3,14 @@ class Utilisateur{
   final String email;
   final String role;
   final String token;
+  final bool estComplet;
 
   Utilisateur({
     required this.token,
     required this.nom_user,
     required this.email,
     required this.role,
+    this.estComplet = false,
     
   });
 
@@ -18,17 +20,21 @@ class Utilisateur{
       nom_user: json['nom_user'],
       email: json['email'],
       role: json['role'],
+      estComplet: json['estComplet'] is bool
+    ? json['estComplet']
+    : json['estComplet'].toString().toLowerCase() == 'true',
+
      
     );
   }
+Map<String, dynamic> toJson() {
+  return {
+    'token': token,
+    'nom_user': nom_user,
+    'email': email,
+    'role': role,
+    'estComplet': estComplet,
+  };
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      token: token,
-      nom_user: nom_user,
-      email: email,
-      role: role,
-      
-    };
-  }
 }

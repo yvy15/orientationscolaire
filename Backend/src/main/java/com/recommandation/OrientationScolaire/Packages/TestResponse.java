@@ -9,5 +9,5 @@ import java.util.Map;
 @Setter
 public class TestResponse {
     private String matricule;
-    private Map<String, Integer> reponses; // Exemple : {"logique": 4, "verbal": 3, "numerique": 5}
+    private Map<String, Integer> reponses;
 }

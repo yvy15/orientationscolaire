@@ -246,8 +246,12 @@ class _LoginPageState extends State<LoginPage> {
        await prefs.setString('email', utilisateur.email ?? '');
        await prefs.setString('role', utilisateur.role ?? '');
        await prefs.setString('token', utilisateur.token ?? '');
+       await prefs.setBool('estComplet', utilisateur.estComplet);
+       var complet=utilisateur.estComplet;
+        print('etat du profil $complet');
         // Redirection selon le rôle
         switch (utilisateur.role) {
+          
           case 'Etablissement':
             Navigator.push(context, MaterialPageRoute(builder: (_) => DashboardLayout(utilisateur : utilisateur)));
             break;

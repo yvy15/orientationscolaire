@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class TestPsychotechniqueScreen1 extends StatefulWidget {
   final String? secteur;
-  final String autreMetier;
+ 
   final String matricule;
   final List<String> metiers;
   final String nomEtablissement;
@@ -14,9 +14,9 @@ class TestPsychotechniqueScreen1 extends StatefulWidget {
   const TestPsychotechniqueScreen1({
     required this.secteur,
     required this.metiers,
-    required this.autreMetier,
+   
     required this.matricule,
-    required this.nomEtablissement,
+    required this.nomEtablissement, required String niveau,
   });
 
   @override
@@ -44,27 +44,55 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
 
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('email') ?? '';
-
+    final estComplet = prefs.getBool('estComplet');
     final body = {
       "email": email,
       "secteur": widget.secteur,
       "metiers": widget.metiers,
-      "autremetier": widget.autreMetier,
+
       "nomEtablissement": widget.nomEtablissement,
       "matricule": widget.matricule,
     };
 
     try {
-      // Appel backend pour stocker infos
+       print('statut du profil $estComplet');
+      if (estComplet == true){
+        final mistralPrompt = _buildPrompt(widget.secteur,widget.metiers as List<String?>);
+        final mistralResponse = await http.post(
+          Uri.parse("https://api.mistral.ai/v1/chat/completions"),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer oPrGB2UPZBr4uWldQQ5uuP2Yx5d8iizw'
+          },
+          body: jsonEncode({
+            "model": "mistral-tiny",
+            "messages": [
+              {"role": "user", "content": mistralPrompt}
+            ],
+          }),
+        );
+
+        final mistralData = jsonDecode(mistralResponse.body);
+        final content = mistralData['choices'][0]['message']['content'];
+        final quizData = jsonDecode(content);
+
+        setState(() {
+          questions = List<Map<String, dynamic>>.from(quizData['quiz']);
+          isLoading = false;
+        });
+
+      }else{
+
+        // Appel backend pour stocker infos
       final backendResponse = await http.post(
         Uri.parse("http://localhost:8080/api/test/soumettre"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
 
-      if (backendResponse.statusCode == 200) {
+      if (backendResponse.statusCode == 200 ) {
         // Appel API Mistral
-        final mistralPrompt = _buildPrompt(widget.secteur,widget.autreMetier,widget.metiers);
+        final mistralPrompt = _buildPrompt(widget.secteur,widget.metiers as List<String?>);
         final mistralResponse = await http.post(
           Uri.parse("https://api.mistral.ai/v1/chat/completions"),
           headers: {
@@ -88,21 +116,23 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
           isLoading = false;
         });
       } else {
-        print("Erreur backend : ${backendResponse.statusCode}");
+        print("Erreur backend : '${backendResponse.statusCode}");
       }
+
+      }
+      
     } catch (e) {
       print("Erreur lors de la génération du quiz : $e");
     }
   }
 
-  String _buildPrompt(String? secteur,String? autreMetier,List<String?> metiers){
+  String _buildPrompt(String? secteur,List<String?> metiers){
 
       
-     String metiersList = metiers.where((m) => m != null && m!.isNotEmpty).join(', ');
+     String metiersList = metiers.where((m) => m != null && m.isNotEmpty).join(', ');
 
-       return """Tu es un expert en orientation scolaire. Génère un test psychotechnique de 10 questions adaptées aux sous metiers $metiersList ou alors associer au secteur $autreMetier
-Chaque question doit être rédigée en **français**, avec trois réponses concrètes désignées comme Réponse A, Réponse B, Réponse C. 
-Chaque réponse doit inclure son texte en français.
+       return """Tu es un expert en orientation scolaire. Génère un test psychotechnique de 10 questions adaptées aux sous metiers $metiersList comme Réponse A, Réponse B, Réponse C. 
+Chaque réponse doit inclure son texte en français, question doit être rédigée en **français**, avec trois réponses concrètes désignées 
 Format attendu :
 {
   "quiz": [
@@ -254,3 +284,5 @@ Ne retourne que du JSON valide et uniquement en français.
     );
   }
 }
+
+// ignore: camel_case_types
