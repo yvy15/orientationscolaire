@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_typing_uninitialized_variables
+
 class Recommandation{
   final String apprenant;
   final String filiere_suggerer;
@@ -33,3 +35,35 @@ class Recommandation{
     };
   }
 }
+
+
+
+class RecommandationResultat {
+  final Map<String, double> scores;
+  final List<String> recommandations;
+  final List<String> alternatives;
+
+  RecommandationResultat({
+    required this.scores,
+    required this.recommandations,
+    required this.alternatives,
+  });
+
+  factory RecommandationResultat.fromJson(Map<String, dynamic> json) {
+    return RecommandationResultat(
+      scores: Map<String, double>.from(json['scores']),
+      recommandations: List<String>.from(json['recommandations']),
+      alternatives: List<String>.from(json['alternatives']),
+    );
+  }
+}
+  Map<String, dynamic> toJson() {
+    var scores;
+    var recommandations;
+    var alternatives;
+    return {
+      'scores': scores,
+      'recommandations': recommandations,
+      'alternatives': alternatives,
+    };
+  }

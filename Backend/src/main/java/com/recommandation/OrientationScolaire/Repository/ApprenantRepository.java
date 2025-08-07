@@ -20,4 +20,5 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, String> {
     Optional<Apprenant> findBySecteur_activite(@Param("secteur_activite") String secteur_activite);
 
 
+    Optional<Apprenant> findByUtilisateur(Utilisateur utilisateur);
 }

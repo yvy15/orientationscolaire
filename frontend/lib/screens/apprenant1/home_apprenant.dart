@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/apprenant1/test_psychotechnique1.dart';
 import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/services/test_service.dart';
+import 'package:http/http.dart' as http;
 
 class HomeApprenant extends StatefulWidget {
   final Utilisateur utilisateur;
@@ -11,62 +15,135 @@ class HomeApprenant extends StatefulWidget {
 }
 
 class _HomeApprenantState extends State<HomeApprenant> {
-  final List<String> secteurs = ['Informatique', 'Santé', 'Agriculture'];
-  final Map<String, List<String>> metiersMap = {
-    'Informatique': ['Développeur', 'Analyste', 'Technicien'],
-    'Santé': ['Médecin', 'Infirmier', 'Pharmacien'],
-    'Agriculture': ['Agronome', 'Technicien agricole', 'Vétérinaire'],
-  };
-
   String? selectedSecteur;
   List<String> selectedMetiers = [];
-  String nomEtablissement = '';
+  String? autreMetier;
+  String? nomEtablissement;
+  String? matricule;
+  bool estProfilComplet = false;
+
+  List<String> etablissementsDisponibles = [];
+
+  final List<String> secteurs = [
+    'Informatique', 'Santé', 'Éducation', 'Finance', 'Art et Design',
+    'Commerce', 'Droit', 'Agriculture', 'Ingénierie', 'Tourisme',
+  ];
+
+  final Map<String, List<String>> metiersParSecteur = {
+    'Informatique': ['Développeur', 'Analyste de données', 'Technicien Réseau'],
+    'Santé': ['Médecin', 'Infirmier', 'Pharmacien'],
+    'Éducation': ['Enseignant', 'Conseiller pédagogique', 'Surveillant'],
+    'Finance': ['Comptable', 'Contrôleur de gestion', 'Auditeur'],
+    'Art et Design': ['Graphiste', 'Designer UX/UI', 'Photographe'],
+    'Commerce': ['Vendeur', 'Responsable commercial', 'Caissier'],
+    'Droit': ['Avocat', 'Notaire', 'Assistant juridique'],
+    'Agriculture': ['Agriculteur', 'Technicien agricole', 'Ingénieur agronome'],
+    'Ingénierie': ['Ingénieur civil', 'Électronicien', 'Mécanicien'],
+    'Tourisme': ['Guide touristique', 'Agent de voyage', 'Réceptionniste'],
+  };
+
+  final TextEditingController matriculeController = TextEditingController();
+  final TextEditingController autreMetierController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 500), _showProfilePopup);
+    fetchEtablissements();
+    verifierProfilComplet();
   }
 
-  Future<void> _showProfilePopup() async {
-    await showDialog(
+  @override
+  void dispose() {
+    matriculeController.dispose();
+    autreMetierController.dispose();
+    super.dispose();
+  }
+
+  Future<void> fetchEtablissements() async {
+    final response = await http.get(Uri.parse("http://localhost:8080/api/etablissements"));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        etablissementsDisponibles = data.map((e) => e['nom_user'] as String).toList();
+      });
+    }
+  }
+
+  Future<void> verifierProfilComplet() async {
+    try {
+      final data = await TestService.verifierProfil(
+        widget.utilisateur.email,
+        role: '',
+        metiers: [],
+        autreMetier: '',
+        matricule: '', 
+        secteur: '',
+      );
+
+      setState(() {
+        estProfilComplet = data['complet'] ?? false;
+        selectedSecteur = data['secteur'];
+        selectedMetiers = List<String>.from(data['metiers'] ?? []);
+        nomEtablissement = data['etablissement'];
+        matricule = data['matricule'];
+      });
+
+      if (!estProfilComplet) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _ouvrirPopupProfil());
+      }
+    } catch (e) {
+      print("Erreur de vérification du profil : $e");
+    }
+  }
+
+  void _ouvrirPopupProfil() {
+    showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         String? secteurLocal = selectedSecteur;
         List<String> metiersLocal = List.from(selectedMetiers);
-        String etablissementLocal = nomEtablissement;
+        String? etablissementLocal = nomEtablissement;
 
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          elevation: 12,
           child: StatefulBuilder(
-            builder: (context, setState) {
-              return Container(
-                padding: const EdgeInsets.all(24),
-                constraints: const BoxConstraints(maxWidth: 400),
+            builder: (context, setStateDialog) {
+              final metiers = secteurLocal != null ? metiersParSecteur[secteurLocal] ?? [] : [];
+
+              return Padding(
+                padding: const EdgeInsets.all(20),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Compléter votre profil',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      const Text('Complétez votre profil', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 20),
+
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(labelText: 'Établissement', border: OutlineInputBorder()),
+                        value: etablissementLocal,
+                        items: etablissementsDisponibles.map((etab) {
+                          return DropdownMenuItem(value: etab, child: Text(etab));
+                        }).toList(),
+                        onChanged: (val) => setStateDialog(() => etablissementLocal = val),
+                      ),
+                      const SizedBox(height: 20),
+
+                      TextField(
+                        controller: matriculeController,
+                        decoration: const InputDecoration(labelText: 'Matricule', border: OutlineInputBorder()),
                       ),
                       const SizedBox(height: 20),
 
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(
-                          labelText: 'Secteur d\'activité',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.business), // icône secteur
-                        ),
+                        decoration: const InputDecoration(labelText: 'Secteur d\'activité', border: OutlineInputBorder()),
                         value: secteurLocal,
-                        items: secteurs
-                            .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                            .toList(),
+                        items: secteurs.map((secteur) {
+                          return DropdownMenuItem(value: secteur, child: Text(secteur));
+                        }).toList(),
                         onChanged: (val) {
-                          setState(() {
+                          setStateDialog(() {
                             secteurLocal = val;
                             metiersLocal.clear();
                           });
@@ -74,79 +151,86 @@ class _HomeApprenantState extends State<HomeApprenant> {
                       ),
                       const SizedBox(height: 20),
 
-                      if (secteurLocal != null)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Choisissez jusqu\'à 3 métiers :',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 8),
-                            ...metiersMap[secteurLocal]!.map(
-                              (metier) => CheckboxListTile(
-                                title: Row(
-                                  children: [
-                                    const Icon(Icons.work, size: 20), // icône métier
-                                    const SizedBox(width: 8),
-                                    Text(metier),
-                                  ],
-                                ),
-                                value: metiersLocal.contains(metier),
-                                controlAffinity: ListTileControlAffinity.leading,
-                                onChanged: (checked) {
-                                  if (checked == true && metiersLocal.length >= 3) return;
-                                  setState(() {
-                                    if (checked == true) {
-                                      metiersLocal.add(metier);
-                                    } else {
-                                      metiersLocal.remove(metier);
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
+                      if (secteurLocal != null) ...[
+                        const Text('Choisissez un ou plusieurs métiers :', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ...metiers.map((metier) {
+                          return CheckboxListTile(
+                            title: Text(metier),
+                            value: metiersLocal.contains(metier),
+                            onChanged: (bool? value) {
+                              setStateDialog(() {
+                                if (value == true) {
+                                  metiersLocal.add(metier);
+                                } else {
+                                  metiersLocal.remove(metier);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ],
 
                       const SizedBox(height: 20),
+                      const Text('Autre métier (si non listé) :'),
                       TextField(
+                        controller: autreMetierController,
                         decoration: const InputDecoration(
-                          labelText: 'Nom de l\'établissement',
+                          hintText: 'Saisir un autre métier',
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.school), // icône établissement
                         ),
-                        onChanged: (val) => etablissementLocal = val,
-                        controller: TextEditingController(text: etablissementLocal),
                       ),
-
                       const SizedBox(height: 30),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            child: const Text('Annuler'),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          const SizedBox(width: 16),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (etablissementLocal == null ||
+                              matriculeController.text.trim().isEmpty ||
+                              secteurLocal == null ||
+                              (metiersLocal.isEmpty && autreMetierController.text.trim().isEmpty)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Veuillez remplir tous les champs requis')),
+                            );
+                            return;
+                          }
+
+                          await TestService.enregistrerProfil(
+                            email: widget.utilisateur.email,
+                            role: widget.utilisateur.role,
+                            secteur: secteurLocal ?? '',
+                            metiers: metiersLocal,
+                            autreMetier: autreMetierController.text.trim(),
+                            matricule: matriculeController.text.trim(),
+                            etablissement: etablissementLocal!, 
+                            
+                          );
+
+                          setState(() {
+                            selectedSecteur = secteurLocal;
+                            selectedMetiers = metiersLocal;
+                            autreMetier = autreMetierController.text.trim();
+                            nomEtablissement = etablissementLocal;
+                            matricule = matriculeController.text.trim();
+                            estProfilComplet = true;
+                          });
+
+                          Navigator.pop(context);
+
+                          // Lancer le test après profil
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TestPsychotechniqueScreen1(
+                                secteur: secteurLocal!,
+                                metiers: selectedMetiers,
+                                autreMetier: autreMetier ?? '',
+                                matricule: matricule ?? '',
+                                nomEtablissement: nomEtablissement ?? '',
+                              ),
                             ),
-                            child: const Text('Valider', style: TextStyle(fontSize: 16)),
-                            onPressed: () {
-                              setState(() {
-                                selectedSecteur = secteurLocal;
-                                selectedMetiers = metiersLocal;
-                                nomEtablissement = etablissementLocal;
-                              });
-                              Navigator.pop(context);
-                              _showConfirmationPopup();
-                            },
-                          ),
-                        ],
-                      )
+                          );
+                        },
+                        child: const Text('Valider et commencer le test'),
+                      ),
                     ],
                   ),
                 ),
@@ -158,84 +242,106 @@ class _HomeApprenantState extends State<HomeApprenant> {
     );
   }
 
-  Future<void> _showConfirmationPopup() async {
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          elevation: 12,
-          child: Padding(
-            padding: const EdgeInsets.all(24),
+  void _ouvrirPopupMetiers() {
+  List<String> metiersDisponibles = metiersParSecteur[selectedSecteur] ?? [];
+
+  // Crée une copie temporaire des métiers sélectionnés
+  List<String> tempSelection = List<String>.from(selectedMetiers);
+
+  showDialog(
+    context: context,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setStateDialog) {
+        return AlertDialog(
+          title: const Text("Choisissez un ou plusieurs métiers"),
+          content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.check_circle_outline, color: Colors.green, size: 64),
-                const SizedBox(height: 20),
-                const Text(
-                  'Profil complété avec succès !',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Souhaitez-vous effectuer le test psychotechnique maintenant ?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Plus tard'),
-                    ),
-                    const SizedBox(width: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.pushNamed(context, '/test_psychotechnique');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text('Effectuer le test'),
-                    ),
-                  ],
-                )
-              ],
+              children: metiersDisponibles.map((metier) {
+                return CheckboxListTile(
+                  title: Text(metier),
+                  value: tempSelection.contains(metier),
+                  onChanged: (selected) {
+                    setStateDialog(() {
+                      if (selected == true) {
+                        tempSelection.add(metier);
+                      } else {
+                        tempSelection.remove(metier);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+
+                if (tempSelection.isNotEmpty) {
+                  // Met à jour la sélection globale
+                  setState(() {
+                    selectedMetiers = tempSelection;
+                  });
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TestPsychotechniqueScreen1(
+                        secteur: selectedSecteur ?? '',
+                        metiers: selectedMetiers,
+                        autreMetier: '',
+                        matricule: matricule ?? '',
+                        nomEtablissement: nomEtablissement ?? '',
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Veuillez sélectionner au moins un métier")),
+                  );
+                }
+              },
+              child: const Text("Commencer le test"),
+            ),
+          ],
         );
       },
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/img2.jpeg'),
-          fit: BoxFit.cover,
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Bienvenue"),
+        backgroundColor: Colors.blueAccent,
       ),
-      child: const Center(
-        child: Text(
-          'Bienvenue dans votre espace personnel',
-          style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  blurRadius: 5,
-                  color: Colors.black45,
-                  offset: Offset(1, 1),
-                )
-              ]),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Nom: ${widget.utilisateur.nom_user}', style: const TextStyle(fontSize: 18)),
+            Text('Email: ${widget.utilisateur.email}', style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 40),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  if (estProfilComplet) {
+                    _ouvrirPopupMetiers();
+                  } else {
+                    _ouvrirPopupProfil();
+                  }
+                },
+                child: Text(estProfilComplet
+                    ? 'Effectuer un test'
+                    : 'Compléter mon profil et commencer le test'),
+              ),
+            ),
+          ],
         ),
       ),
     );

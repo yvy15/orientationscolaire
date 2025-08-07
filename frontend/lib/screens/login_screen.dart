@@ -8,6 +8,7 @@ import 'package:frontend/screens/etablissment/dashboard_layout.dart';
 import 'package:frontend/services/Authservices.dart';
 import 'package:frontend/utils/helpers/snackbar_helper.dart';
 import 'package:frontend/values/app_regex.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../components/app_text_form_field.dart';
 import '../resources/resources.dart';
 import '../utils/common_widgets/gradient_background.dart';
@@ -236,8 +237,15 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final authService = AuthService();
       final utilisateur = await authService.seconnecter(emailController.text, passwordController.text);
-
+      
       if (utilisateur != null) {
+
+        final prefs = await SharedPreferences.getInstance();
+       
+       await prefs.setString('nom_user', utilisateur.nom_user ?? '');
+       await prefs.setString('email', utilisateur.email ?? '');
+       await prefs.setString('role', utilisateur.role ?? '');
+       await prefs.setString('token', utilisateur.token ?? '');
         // Redirection selon le rôle
         switch (utilisateur.role) {
           case 'Etablissement':

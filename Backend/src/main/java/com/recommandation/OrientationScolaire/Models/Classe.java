@@ -7,17 +7,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class Filiere {
+public class Classe {
 
     @Id
     @GeneratedValue(strategy =  GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "classe", referencedColumnName = "id", nullable = false, unique = true)
-    private Classe classe;
-
     @Column(nullable = false, unique = false)
-    private String filiere;
+    private  String classe;
+
+    @OneToOne
+    @JoinColumn(name = "etablissement", referencedColumnName = "id", nullable = false, unique = true)
+    private Etablissement etablissement;
 
 }

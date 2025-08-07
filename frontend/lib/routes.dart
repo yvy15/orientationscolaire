@@ -3,6 +3,7 @@ import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/etablissment/dashboard_layout.dart';
 import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/screens/register_screen.dart';
+import 'package:frontend/screens/apprenant2/test_psychotechnique.dart';
 import 'package:frontend/utils/common_widgets/invalid_route.dart';
 import 'package:frontend/values/app_routes.dart';
 
@@ -36,6 +37,21 @@ class Routes {
       } else {
         return getRoute(widget: const InvalidRoute());
       }
+
+      case AppRoutes.test:
+      final args = settings.arguments as Map<String, dynamic>?;
+      final secteur = args?['secteur'] ?? '';
+      final metiers = args?['metiers'] ?? <String>[];
+      final autreMetier=args?['autreMetier'] ?? '';
+      final niveauEtude=args?['niveauEtude'] ?? '';
+      return getRoute(
+        widget: TestPsychotechniqueScreen(
+          secteur: secteur,
+          metiers: metiers,
+          autreMetier: autreMetier,
+          niveauEtude: niveauEtude,
+        ),
+      );
 
 
       default:

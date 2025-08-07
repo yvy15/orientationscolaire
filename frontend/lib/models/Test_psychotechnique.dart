@@ -31,4 +31,26 @@ class Test_psychotechnique{
       
     };
   }
+
 }
+
+class Question {
+  final int id;
+  final String texte;
+  final List<String> options;
+
+  Question({
+    required this.id,
+    required this.texte,
+    required this.options,
+  });
+
+  factory Question.fromJson(Map<String, dynamic> json) {
+    return Question(
+      id: json['id'],
+      texte: json['texte'],
+      options: List<String>.from(json['options']),
+    );
+  }
+}
+

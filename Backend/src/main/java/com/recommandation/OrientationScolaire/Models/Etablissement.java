@@ -13,6 +13,10 @@ public class Etablissement {
     @GeneratedValue(strategy =  GenerationType.IDENTITY)
     private Integer id;
 
+    @OneToOne
+    @JoinColumn(name="id_user", referencedColumnName = "id", nullable= false, unique= true)
+    private Utilisateur utilisateur;
+
     @Column(nullable = false, unique = false)
     private String nom;
 

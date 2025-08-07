@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
@@ -22,5 +23,5 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     @Query("SELECT u FROM Utilisateur u WHERE u.mot_passe = :mot_passe")
     Optional<Utilisateur> findByMot_passe(@Param("mot_passe") String mot_passe);
 
-    Optional<Utilisateur> findByRole(String role);
+    List<Utilisateur> findByRole(Utilisateur.Role role);
 }

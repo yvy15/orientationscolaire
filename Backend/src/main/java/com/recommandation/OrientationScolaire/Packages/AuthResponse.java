@@ -6,8 +6,11 @@ import lombok.Data;
 @Data //utiliser pour recuperer les donnees dans la BD et affiche a l'ecran
 @AllArgsConstructor
 public class AuthResponse {
+
     private String token;
     private String nom_user;
     private String email;
     private String role;
+
+
 }
