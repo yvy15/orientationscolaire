@@ -479,7 +479,7 @@ class _HomeApprenant1State extends State<HomeApprenant1> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Bienvenue"), backgroundColor: Colors.blueAccent),
+     // appBar: AppBar(title: const Text("Bienvenue"), backgroundColor: Colors.blueAccent),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

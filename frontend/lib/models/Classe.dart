@@ -1,30 +1,29 @@
-class Classe{
-  final int id;
+import 'package:frontend/models/Etablissement.dart';
+
+class Classe {
+  final int? id;
   final String classe;
-  final String etablissement;
+  final Etablissement? etablissement; // Changez le type ici
 
   Classe({
-    required this.id,
+    this.id,
     required this.classe,
     required this.etablissement,
-
   });
 
   factory Classe.fromJson(Map<String, dynamic> json) {
     return Classe(
-      id: json['id'],
-      classe: json['classe'],
-      etablissement: json['etablissement'],
-     
+      id: json['id'] as int,
+      classe: json['classe'] as String,
+      etablissement: Etablissement.fromJson(json['etablissement'] as Map<String, dynamic>), // Traitez l'établissement comme un objet
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      
-      classe: classe,
-      etablissement: etablissement,
-      
+      'id': id,
+      'classe': classe,
+      'etablissement': etablissement?.toJson() ,
     };
   }
 }

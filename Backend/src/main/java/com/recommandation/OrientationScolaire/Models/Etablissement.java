@@ -1,12 +1,14 @@
 package com.recommandation.OrientationScolaire.Models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
+
 public class Etablissement {
 
     @Id

@@ -15,18 +15,17 @@ class Utilisateur{
   });
 
   factory Utilisateur.fromJson(Map<String, dynamic> json) {
-    return Utilisateur(
-      token: json['token'],
-      nom_user: json['nom_user'],
-      email: json['email'],
-      role: json['role'],
-      estComplet: json['estComplet'] is bool
-    ? json['estComplet']
-    : json['estComplet'].toString().toLowerCase() == 'true',
-
-     
-    );
-  }
+  return Utilisateur(
+    token: json['token'] as String? ?? '', // Valeur par défaut pour une chaîne
+    nom_user: json['nom_user'] as String? ?? '', // Valeur par défaut pour une chaîne
+    email: json['email'] as String? ?? '', // Valeur par défaut pour une chaîne
+    role: json['role'] as String? ?? '', // Valeur par défaut pour une chaîne
+    estComplet: json['estComplet'] is bool
+        ? json['estComplet']
+        : json['estComplet']?.toString().toLowerCase() == 'true', // Gérer les valeurs nulles
+  );
+}
+  
 Map<String, dynamic> toJson() {
   return {
     'token': token,

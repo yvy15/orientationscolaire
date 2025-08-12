@@ -14,7 +14,7 @@ public class Filiere {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "classe", referencedColumnName = "id", nullable = false, unique = true)
+    @JoinColumn(name = "classe", referencedColumnName = "id", nullable = false)
     private Classe classe;
 
     @Column(nullable = false, unique = false)

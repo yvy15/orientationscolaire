@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/screens/apprenant1/test_psychotechnique1.dart';
 import 'home_apprenant.dart';
 
 class DashboardLayoutApprenant extends StatefulWidget {
@@ -14,12 +15,18 @@ class DashboardLayoutApprenant extends StatefulWidget {
 class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
   int selectedIndex = 0;
 
-  final List<Widget> pages = [];
+  late final List<Widget> pages;
 
   @override
   void initState() {
     super.initState();
-    pages.add(HomeApprenant(utilisateur: widget.utilisateur));
+    pages = [
+      HomeApprenant(utilisateur: widget.utilisateur),
+      TestPsychotechniqueScreen1(secteur: '', metiers: [], matricule: '', nomEtablissement: '',utilisateur: widget.utilisateur),
+      const PlaceholderPage(title: 'Gérer son profil'),
+      const PlaceholderPage(title: 'Modifier son secteur'),
+      const PlaceholderPage(title: 'Historique des tests'),
+    ];
   }
 
   @override
@@ -58,6 +65,30 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
                 Navigator.pop(context);
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.psychology),
+              title: const Text('Test Psychotechnique'),
+              onTap: () {
+                setState(() => selectedIndex = 1);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Modifier son secteur'),
+              onTap: () {
+                setState(() => selectedIndex = 2);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Historique des tests'),
+              onTap: () {
+                setState(() => selectedIndex = 3);
+                Navigator.pop(context);
+              },
+            ),
           ],
         ),
       ),
@@ -74,6 +105,21 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
         ],
       ),
       body: pages[selectedIndex],
+    );
+  }
+}
+
+class PlaceholderPage extends StatelessWidget {
+  final String title;
+  const PlaceholderPage({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        '$title (à venir)',
+        style: const TextStyle(fontSize: 18, color: Colors.grey),
+      ),
     );
   }
 }

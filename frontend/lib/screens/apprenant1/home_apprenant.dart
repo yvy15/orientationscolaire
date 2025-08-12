@@ -422,7 +422,8 @@ class _HomeApprenantState extends State<HomeApprenant> {
                                 metiers: metiersLocal,
                                 matricule: matricule ?? '',
                                 nomEtablissement: nomEtablissement ?? '',
-                                niveau: '',
+                                utilisateur: widget.utilisateur,
+                                
                               ),
                             ),
                           );
@@ -501,7 +502,7 @@ class _HomeApprenantState extends State<HomeApprenant> {
                         metiers: selectedMetiers,
                         matricule: matricule ?? '',
                         nomEtablissement: nomEtablissement ?? '', 
-                        niveau: '',
+                        utilisateur: widget.utilisateur, 
                       ),
                     ),
                   );
@@ -518,10 +519,6 @@ class _HomeApprenantState extends State<HomeApprenant> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Bienvenue"),
-        backgroundColor: Colors.blueAccent,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -557,3 +554,4 @@ extension on ScaffoldMessengerState {
 mixin text {
   static trim() {}
 }
+

@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -31,6 +31,7 @@ dependencies:
   flutter_screenutil: ^5.0.0+2
   smooth_page_indicator: ^1.2.1
   colorize_text_avatar: ^1.0.2
+  file_picker: ^5.3.1   
 
 dev_dependencies:
   flutter_test:

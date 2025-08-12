@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/screens/etablissment/dashboard_classes.dart';
 import 'dashboard_home.dart';
 import 'dashboard_eleves.dart';
 import 'dashboard_filieres.dart';
@@ -23,9 +24,11 @@ class _DashboardLayoutState extends State<DashboardLayout> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       DashboardHome(utilisateur: widget.utilisateur),
-      const DashboardEleves(),
-      const DashboardFilieres(),
+      AjouterApprenantsPage(),
+      DashboardFilieres(),
       const Center(child: Text('Statistiques (à venir)', style: TextStyle(fontSize: 20))),
+      DashboardClasses(),
+      
     ];
 
     return Scaffold(
@@ -68,13 +71,18 @@ class _DashboardLayoutState extends State<DashboardLayout> {
             ),
             ListTile(
               leading: const Icon(Icons.category),
-              title: const Text('Filières disponibles'),
+              title: const Text('Gérer vos filieres'),
               onTap: () => _setPage(2),
             ),
             ListTile(
               leading: const Icon(Icons.bar_chart),
               title: const Text('Statistiques'),
               onTap: () => _setPage(3),
+            ),
+            ListTile(
+              leading: const Icon(Icons.school),
+              title: const Text('Gérer vos classes'),
+              onTap: () => _setPage(4),
             ),
           ],
         ),
