@@ -25,9 +25,9 @@ public class FiliereController {
         return filiereService.getFilieresParClasse(classeId);
     }
 
-    @PostMapping("/classe/{classeId}")
-    public Filiere ajouterFiliere(@PathVariable Integer classeId, @RequestBody Filiere filiere) {
-        return filiereService.ajouterFiliere(classeId, filiere);
+    @PostMapping("/classe/{classeId}/ajouter")
+    public void ajouterFilieres(@PathVariable Integer classeId, @RequestBody List<String> filieres) {
+        filiereService.ajouterFilieres(classeId, filieres);
     }
 
     @PutMapping("/{id}")

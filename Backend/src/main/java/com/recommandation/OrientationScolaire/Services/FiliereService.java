@@ -29,34 +29,28 @@ public class FiliereService {
         return filiereRepository.findByClasse(classe);
     }
 
-    public Filiere ajouterFiliere(Integer classeId, Filiere filiere) {
+    public void ajouterFilieres(Integer classeId, List<String> nomsFilieres) {
         Classe classe = classeRepository.findById(classeId)
                 .orElseThrow(() -> new RuntimeException("Classe non trouvée"));
-
-        filiere.setClasse(classe);
-
-        // On s'assure que la propriété filiere (le nom) soit bien renseignée
-        if (filiere.getFiliere() == null || filiere.getFiliere().trim().isEmpty()) {
-            throw new RuntimeException("Le nom de la filière est obligatoire");
+        for (String nom : nomsFilieres) {
+            if (nom != null && !nom.trim().isEmpty()) {
+                Filiere filiere = new Filiere();
+                filiere.setFiliere(nom.trim());
+                filiere.setClasse(classe);
+                filiereRepository.save(filiere);
+            }
         }
-
-        return filiereRepository.save(filiere);
     }
 
     public Filiere modifierFiliere(Integer id, Filiere filiere) {
         Filiere filiereExistante = filiereRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Filière non trouvée"));
-
-        // Modifier uniquement le nom de la filière (le champ filiere)
         if (filiere.getFiliere() != null && !filiere.getFiliere().trim().isEmpty()) {
             filiereExistante.setFiliere(filiere.getFiliere());
         }
-
-        // Optionnel : gérer changement de classe si besoin
         if (filiere.getClasse() != null) {
             filiereExistante.setClasse(filiere.getClasse());
         }
-
         return filiereRepository.save(filiereExistante);
     }
 
