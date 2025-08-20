@@ -376,7 +376,7 @@ class _HomeApprenantState extends State<HomeApprenant> {
                               });
                             },
                           );
-                        }).toList(),
+                        }),
                       ],
 
                       const SizedBox(height: 20),
@@ -388,7 +388,7 @@ class _HomeApprenantState extends State<HomeApprenant> {
                           if (etablissementLocal == null ||
                               matriculeController.text.trim().isEmpty ||
                               secteurLocal == null ||
-                              (metiersLocal.isEmpty && text.trim().isEmpty)) {(
+                              (metiersLocal.isEmpty)) {(
                               const SnackBar(content: Text('Veuillez remplir tous les champs requis')),
                             );
                             return;
@@ -552,6 +552,6 @@ extension on ScaffoldMessengerState {
 }
 
 mixin text {
-  static trim() {}
+  static void trim() {}
 }
 

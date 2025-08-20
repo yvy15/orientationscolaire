@@ -395,24 +395,15 @@ Ne retourne que le format valide et uniquement en francais et parsable
                                     final utilisateur = 
                                         await getUtilisateurDepuisPrefs();
 
-                                    if (utilisateur != null) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              DashboardLayoutApprenant1(
-                                                  utilisateur: utilisateur),
-                                        ),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                "Erreur : utilisateur non trouvé")),
-                                      );
-                                    }
-                                  },
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            DashboardLayoutApprenant1(
+                                                utilisateur: utilisateur),
+                                      ),
+                                    );
+                                                                    },
                                   child: const Text("Retour au tableau de bord"),
                                 ),
                               ],
@@ -447,14 +438,14 @@ Ne retourne que le format valide et uniquement en francais et parsable
                     return RadioListTile(
                       value: option,
                       groupValue: reponsesUtilisateur[index],
-                      title: Text("${option}) ${question['options'][option]['text']}"),
+                      title: Text("$option) ${question['options'][option]['text']}"),
                       onChanged: (val) {
                         setState(() {
                           reponsesUtilisateur[index] = val!;
                         });
                       },
                     );
-                  }).toList()
+                  })
                 ],
               ),
             ),

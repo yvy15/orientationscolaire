@@ -345,7 +345,7 @@ class _HomeApprenant1State extends State<HomeApprenant1> {
                               });
                             },
                           );
-                        }).toList(),
+                        }),
                       ],
 
                       const SizedBox(height: 20),

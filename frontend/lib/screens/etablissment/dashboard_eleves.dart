@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/models/Classe.dart';
+import 'package:frontend/services/Classeservice.dart';
+import 'package:frontend/services/Eleveservice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AjouterApprenantsPage extends StatefulWidget {
-  const AjouterApprenantsPage({Key? key}) : super(key: key);
+  const AjouterApprenantsPage({super.key});
 
   @override
   State<AjouterApprenantsPage> createState() => _AjouterApprenantsPageState();
@@ -27,6 +30,12 @@ class _AjouterApprenantsPageState extends State<AjouterApprenantsPage> {
   // Fichier sélectionné
   PlatformFile? _fichierSelectionne;
 
+  
+  List<String> _listeClasses = [];
+  
+  List<Classe> _classes = [];
+  
+
   @override
   void initState() {
     super.initState();
@@ -34,41 +43,47 @@ class _AjouterApprenantsPageState extends State<AjouterApprenantsPage> {
     _chargerApprenants();
   }
 
-  // Charger classes depuis SharedPreferences (même clé que dans DashboardFilieres)
-  Future<void> _chargerClasses() async {
+  Future<String?> getUtilisateurEmail() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('classeFilieres');
-    if (jsonString != null) {
-      final Map<String, dynamic> jsonMap = json.decode(jsonString);
-      setState(() {
-        _classesData = jsonMap.map(
-          (key, value) => MapEntry(key, List<String>.from(value)),
-        );
-      });
+    return prefs.getString('email');
+  }
+
+  // Charger classes depuis SharedPreferences (même clé que dans DashboardFilieres)
+    Future<void> _chargerClasses() async {
+    final userEmail = await getUtilisateurEmail();
+    if (userEmail != null && userEmail.isNotEmpty) {
+      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      if (etablissement != null) {
+        int etablissementId = etablissement.id;
+        _classes = await ClasseService().getClasses(etablissementId);
+        setState(() {
+          _listeClasses = _classes.map((classe) => classe.classe).toList();
+          if (_listeClasses.isNotEmpty && _classeSelectionnee == null) {
+            _classeSelectionnee = _listeClasses.first;
+          }
+        });
+      }
     }
   }
 
   // Charger liste d'apprenants
   Future<void> _chargerApprenants() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('apprenants');
-    if (jsonString != null) {
-      final List<dynamic> jsonList = json.decode(jsonString);
+    try {
+      final service = EleveService();
+      final eleves = await service.getEleves();
       setState(() {
-        _apprenants = jsonList.cast<Map<String, dynamic>>();
+        _apprenants = eleves;
       });
+    } catch (e) {
+      print('Erreur chargement élèves: $e');
     }
   }
 
   // Sauvegarder liste d'apprenants
-  Future<void> _sauvegarderApprenants() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = json.encode(_apprenants);
-    await prefs.setString('apprenants', jsonString);
-  }
+  // Plus besoin de sauvegarder localement, tout passe par le backend
 
   // Ajouter un apprenant
-  void _ajouterApprenant() {
+  Future<void> _ajouterApprenant() async {
     final nom = _nomController.text.trim();
     final prenom = _prenomController.text.trim();
     final email = _emailController.text.trim();
@@ -86,27 +101,35 @@ class _AjouterApprenantsPageState extends State<AjouterApprenantsPage> {
       'prenom': prenom,
       'email': email,
       'classe': classe,
-      'document': _fichierSelectionne != null ? _fichierSelectionne!.name : null,
+      'document': _fichierSelectionne?.name,
     };
 
-    setState(() {
-      _apprenants.add(nouvelApprenant);
-      _nomController.clear();
-      _prenomController.clear();
-      _emailController.clear();
-      _classeSelectionnee = null;
-      _fichierSelectionne = null;
-    });
-
-    _sauvegarderApprenants();
+    try {
+      final service = EleveService();
+      await service.ajouterEleve(nouvelApprenant);
+      await _chargerApprenants();
+      setState(() {
+        _nomController.clear();
+        _prenomController.clear();
+        _emailController.clear();
+        _classeSelectionnee = null;
+        _fichierSelectionne = null;
+      });
+    } catch (e) {
+      print('Erreur ajout élève: $e');
+    }
   }
 
   // Supprimer un apprenant
-  void _supprimerApprenant(int index) {
-    setState(() {
-      _apprenants.removeAt(index);
-    });
-    _sauvegarderApprenants();
+  Future<void> _supprimerApprenant(int index) async {
+    try {
+      final service = EleveService();
+      final eleve = _apprenants[index];
+      await service.supprimerEleve(eleve['id']);
+      await _chargerApprenants();
+    } catch (e) {
+      print('Erreur suppression élève: $e');
+    }
   }
 
   // Ouvrir picker de fichier

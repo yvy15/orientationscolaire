@@ -50,18 +50,20 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void controllerListener() {
-    final nom_user = nom_userController.text;
+    final nomUser = nom_userController.text;
     final email = emailController.text;
-    final mot_passe = mot_passeController.text;
+    final motPasse = mot_passeController.text;
     final confirmPassword = confirmPasswordController.text;
 
-    if (nom_user.isEmpty &&
+    if (nomUser.isEmpty &&
         email.isEmpty &&
-        mot_passe.isEmpty &&
-        confirmPassword.isEmpty) return;
+        motPasse.isEmpty &&
+        confirmPassword.isEmpty) {
+      return;
+    }
 
     if (AppRegex.emailRegex.hasMatch(email) &&
-        AppRegex.passwordRegex.hasMatch(mot_passe) &&
+        AppRegex.passwordRegex.hasMatch(motPasse) &&
         AppRegex.passwordRegex.hasMatch(confirmPassword)) {
       fieldValidNotifier.value = true;
     } else {

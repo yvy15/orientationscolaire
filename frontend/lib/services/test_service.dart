@@ -31,7 +31,7 @@ class TestService {
 
   // ✅ CORRECTION ICI : Ne prendre que l'email
   static Future<Map<String, dynamic>> verifierProfil(String email, {required String role, required List<String> metiers, required String secteur, required String matricule, String? etablissement, required String niveau}) async {
-    print("$email");
+    print(email);
     final url = Uri.parse("$baseUrl/estComplet/$email");
     final response = await http.get(url);
 

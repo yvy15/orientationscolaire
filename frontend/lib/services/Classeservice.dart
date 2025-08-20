@@ -27,19 +27,15 @@ class ClasseService {
     List<dynamic> jsonList = json.decode(response.body);
 
     // Vérifiez le type de jsonList
-    if (jsonList is List) {
-      return jsonList.map((json) {
-        // Assurez-vous que json est bien un Map
-        if (json is Map<String, dynamic>) {
-          return Classe.fromJson(json);
-        } else {
-          throw Exception('Format JSON inattendu');
-        }
-      }).toList();
+    return jsonList.map((json) {
+      // Assurez-vous que json est bien un Map
+      if (json is Map<String, dynamic>) {
+        return Classe.fromJson(json);
+      } else {
+        throw Exception('Format JSON inattendu');
+      }
+    }).toList();
     } else {
-      throw Exception('Format JSON inattendu');
-    }
-  } else {
     throw Exception('Erreur lors de la récupération des classes');
   }
 }

@@ -1,11 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Classe.dart';
 import 'package:frontend/services/Classeservice.dart';
+import 'package:frontend/services/Filiereservice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardFilieres extends StatefulWidget {
-  const DashboardFilieres({super.key});
+  const DashboardFilieres({Key? key}) : super(key: key);
 
   @override
   State<DashboardFilieres> createState() => _DashboardFilieresState();
@@ -15,13 +15,12 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
   final TextEditingController _filieresController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
-  Map<String, List<String>> _donnees = {};
+  Map<String, List<Map<String, dynamic>>> _donnees = {};
   List<String> _listeClasses = [];
   String? _classeSelectionnee;
   String? _editingClasse;
   String? _editingFiliere;
   List<Classe> _classes = [];
-  // Pour gérer l’état d’expansion des classes dans la liste
   final Map<String, bool> _isExpanded = {};
 
   @override
@@ -31,73 +30,45 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
     _chargerClasses();
   }
 
-  Future<void> _chargerDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('classeFilieres');
-    if (jsonString != null) {
-      final Map<String, dynamic> jsonMap = json.decode(jsonString);
-      setState(() {
-        _donnees = jsonMap.map(
-          (key, value) => MapEntry(key, List<String>.from(value)),
-        );
-      });
-    }
-  }
-
   Future<String?> getUtilisateurEmail() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('email'); // Assurez-vous que l'ID de l'utilisateur est stocké sous cette clé
-}
-
- Future<void> chargerClasses() async {
-  final userEmail = await getUtilisateurEmail();
-  print("User email: $userEmail"); // Log de l'email de l'utilisateur
-
-    if (userEmail != null && userEmail.isNotEmpty) {
-      print("Email utilisateur valide");
-      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail ?? '');
-      print("Etablissement: $etablissement");
-      
-     if (etablissement != null) {
-       int etablissementId = etablissement.id;
-        print("Etablissement ID: $etablissementId");
-        
-       _classes = await ClasseService().getClasses(etablissementId);
-        print("Classes: $_classes");
-        
-        setState(() {});
-     } else {
-        print("Aucun établissement trouvé.");
-      }
-    } else {
-      print("Email utilisateur vide ou nul.");
-    }
- 
-}
- Future<void> _chargerClasses() async {
-  await chargerClasses(); // Ajoutez await pour assurer la synchronisation
-
-  if (_classes != null) {
-    setState(() {
-      _listeClasses = _classes
-          .map((classe) => classe.classe) // Assurez-vous que 'classe' est un attribut valide
-          .toList();
-
-      // Initialiser la sélection par défaut
-      if (_listeClasses.isNotEmpty && _classeSelectionnee == null) {
-        _classeSelectionnee = _listeClasses.first;
-      }
-    });
-  }
-}
-
-  Future<void> _sauvegarderDonnees() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = json.encode(_donnees);
-    await prefs.setString('classeFilieres', jsonString);
+    return prefs.getString('email');
   }
 
-  void _ajouterOuModifier() {
+  Future<void> _chargerDonnees() async {
+    try {
+      final service = FiliereService();
+      final userEmail = await getUtilisateurEmail();
+      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      if (etablissement != null) {
+        final data = await service.getFilieresParClassePourEtablissement(etablissement.id);
+        setState(() {
+          _donnees = data;
+        });
+      }
+    } catch (e) {
+      print('Erreur chargement filières: $e');
+    }
+  }
+
+  Future<void> _chargerClasses() async {
+    final userEmail = await getUtilisateurEmail();
+    if (userEmail != null && userEmail.isNotEmpty) {
+      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      if (etablissement != null) {
+        int etablissementId = etablissement.id;
+        _classes = await ClasseService().getClasses(etablissementId);
+        setState(() {
+          _listeClasses = _classes.map((classe) => classe.classe).toList();
+          if (_listeClasses.isNotEmpty && _classeSelectionnee == null) {
+            _classeSelectionnee = _listeClasses.first;
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _ajouterOuModifier() async {
     final filieresTexte = _filieresController.text.trim();
     if (_classeSelectionnee == null || filieresTexte.isEmpty) return;
 
@@ -107,39 +78,34 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
         .where((f) => f.isNotEmpty)
         .toList();
 
-    setState(() {
-      if (_editingClasse != null) {
-        // Modifier une classe (potentiellement renommée)
-        if (_classeSelectionnee != _editingClasse) {
-          _donnees.remove(_editingClasse);
-          _donnees[_classeSelectionnee!] = filieres;
-        } else {
-          _donnees[_editingClasse!] = filieres;
-        }
-        _editingClasse = null;
-        _editingFiliere = null;
-      } else if (_editingFiliere != null && _donnees.containsKey(_classeSelectionnee)) {
-        // Modifier une filière
-        final currentFilieres = _donnees[_classeSelectionnee!]!;
-        final index = currentFilieres.indexOf(_editingFiliere!);
-        if (index != -1) {
-          currentFilieres[index] = filieres.first;
-        }
-        _editingFiliere = null;
-      } else {
-        // Ajouter filières à la classe sélectionnée
-        _donnees.putIfAbsent(_classeSelectionnee!, () => []);
-        _donnees[_classeSelectionnee!]!.addAll(filieres);
+    final service = FiliereService();
+    if (_editingFiliere != null) {
+      final filiereObj = _donnees[_classeSelectionnee!]
+          ?.firstWhere((f) => f['filiere'].toString() == _editingFiliere, orElse: () => {});
+      if (filiereObj != null && filiereObj['id'] != null) {
+        await service.modifierFiliere(filiereObj['id'], filieres.first);
+        await _chargerDonnees();
       }
-      _filieresController.clear();
-      _sauvegarderDonnees();
-    });
+    } else {
+      final classeObj = _classes.firstWhere(
+        (c) => c.classe == _classeSelectionnee,
+        orElse: () => Classe(id: null, classe: '', etablissement: null),
+      );
+      if (classeObj.id != null) {
+        await service.ajouterFilieres(classeObj.id.toString(), filieres);
+        await _chargerDonnees();
+      }
+    }
+    _filieresController.clear();
+    _editingClasse = null;
+    _editingFiliere = null;
   }
 
   void _modifierClasse(String classe) {
     setState(() {
       _classeSelectionnee = classe;
-      _filieresController.text = _donnees[classe]!.join(', ');
+      _filieresController.text =
+          _donnees[classe]!.map((f) => f['filiere'].toString()).join(', ');
       _editingClasse = classe;
       _editingFiliere = null;
     });
@@ -158,36 +124,34 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
     setState(() {
       _donnees.remove(classe);
       _isExpanded.remove(classe);
-      // Mettre à jour sélection si la classe supprimée était sélectionnée
       if (_classeSelectionnee == classe) {
         _classeSelectionnee =
             _listeClasses.firstWhere((c) => c != classe, orElse: () => '');
       }
-      _sauvegarderDonnees();
     });
   }
 
-  void _supprimerFiliere(String classe, String filiere) {
-    setState(() {
-      _donnees[classe]?.remove(filiere);
-      if (_donnees[classe]?.isEmpty ?? false) {
-        _donnees.remove(classe);
-        _isExpanded.remove(classe);
-      }
-      _sauvegarderDonnees();
-    });
+  Future<void> _supprimerFiliere(String classe, String filiere) async {
+    final service = FiliereService();
+    final filiereObj = _donnees[classe]
+  ?.firstWhere((f) => f['filiere'].toString() == filiere, orElse: () => {});
+    if (filiereObj != null && filiereObj['id'] != null) {
+      await service.supprimerFiliere(filiereObj['id']);
+      await _chargerDonnees();
+    }
   }
 
-  Map<String, List<String>> _filtrerDonnees() {
+  Map<String, List<Map<String, dynamic>>> _filtrerDonnees() {
     final recherche = _searchController.text.toLowerCase();
     if (recherche.isEmpty) return _donnees;
 
-    final filtered = <String, List<String>>{};
+    final filtered = <String, List<Map<String, dynamic>>>{};
 
     _donnees.forEach((classe, filieres) {
       final matchClasse = classe.toLowerCase().contains(recherche);
-      final filieresFiltres =
-          filieres.where((f) => f.toLowerCase().contains(recherche)).toList();
+      final filieresFiltres = filieres
+          .where((f) => f['filiere'].toString().toLowerCase().contains(recherche))
+          .toList();
       if (matchClasse) {
         filtered[classe] = filieres;
       } else if (filieresFiltres.isNotEmpty) {
@@ -267,7 +231,9 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
               ),
               const SizedBox(width: 12),
               ElevatedButton(
-                onPressed: _ajouterOuModifier,
+                onPressed: () async {
+                  await _ajouterOuModifier();
+                },
                 child: Text(_editingClasse != null || _editingFiliere != null
                     ? 'Modifier'
                     : 'Ajouter'),
@@ -321,24 +287,25 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
                             ),
                             if (estOuvert)
                               Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                                 child: Column(
-                                  children: filieres.map((filiere) {
+                                  children: filieres.map((filiereObj) {
                                     return ListTile(
-                                      title: Text(filiere),
+                                      title: Text(filiereObj['filiere'].toString()),
                                       trailing: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           IconButton(
                                             icon: const Icon(Icons.edit, color: Colors.blue),
                                             tooltip: 'Modifier la filière',
-                                            onPressed: () => _modifierFiliere(classe, filiere),
+                                            onPressed: () => _modifierFiliere(
+                                                classe, filiereObj['filiere'].toString()),
                                           ),
                                           IconButton(
                                             icon: const Icon(Icons.delete, color: Colors.red),
                                             tooltip: 'Supprimer la filière',
-                                            onPressed: () => _supprimerFiliere(classe, filiere),
+                                            onPressed: () => _supprimerFiliere(
+                                                classe, filiereObj['filiere'].toString()),
                                           ),
                                         ],
                                       ),
@@ -364,4 +331,3 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
     super.dispose();
   }
 }
-

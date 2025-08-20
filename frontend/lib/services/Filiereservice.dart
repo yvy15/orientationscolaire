@@ -1,68 +1,97 @@
+
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FiliereService {
-  final String baseUrl = 'http://localhost:8080/api/filieres';
+  final String baseUrl = 'http://127.0.0.1:8080/api/filieres';
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
-  Future<Map<String, List<String>>> getFilieresParClasse() async {
+  // Retourne les filières par classe pour un établissement
+  Future<Map<String, List<Map<String, dynamic>>>> getFilieresParClassePourEtablissement(int etablissementId) async {
     final token = await _getToken();
-    final response = await http.get(
-      Uri.parse(baseUrl),
+    // Récupère toutes les classes de l'établissement
+    final classesResponse = await http.get(
+      Uri.parse('http://127.0.0.1:8080/api/classes?etablissementId=$etablissementId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      Map<String, List<String>> result = {};
-      for (var item in data) {
-        String classe = item['classe'];
-        String filiere = item['filiere'];
-        result.putIfAbsent(classe, () => []);
-        result[classe]!.add(filiere);
-      }
-      return result;
-    } else {
-      throw Exception('Erreur lors du chargement des filières');
+    if (classesResponse.statusCode != 200) {
+      throw Exception('Erreur lors du chargement des classes');
     }
+    final List classesData = jsonDecode(classesResponse.body);
+    Map<String, List<Map<String, dynamic>>> result = {};
+    for (var classe in classesData) {
+      final classeId = classe['id'];
+      final classeNom = classe['classe'];
+      // Récupère les filières pour chaque classe
+      final filieresResponse = await http.get(
+        Uri.parse('$baseUrl/classe/$classeId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (filieresResponse.statusCode == 200) {
+        final List filieresData = jsonDecode(filieresResponse.body);
+        result[classeNom] = filieresData.map<Map<String, dynamic>>((item) => {
+          'id': item['id'],
+          'filiere': item['filiere'],
+        }).toList();
+      } else {
+        result[classeNom] = [];
+      }
+    }
+    return result;
   }
 
-  Future<void> ajouterOuModifierFilieres(String classe, List<String> filieres) async {
+  Future<void> ajouterFilieres(String classeId, List<String> filieres) async {
     final token = await _getToken();
-    final body = jsonEncode({
-      'classe': classe,
-      'filieres': filieres,
-    });
     final response = await http.post(
-      Uri.parse(baseUrl),
+      Uri.parse('$baseUrl/classe/$classeId/ajouter'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: body,
+      body: jsonEncode(filieres),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Erreur lors de la mise à jour des filières');
+      throw Exception('Erreur lors de l\'ajout des filières');
     }
   }
 
-  Future<void> supprimerFiliere(String classe, String filiere) async {
+  Future<void> supprimerFiliere(int filiereId) async {
     final token = await _getToken();
     final response = await http.delete(
-      Uri.parse('$baseUrl/$classe/$filiere'),
+      Uri.parse('$baseUrl/$filiereId'),
       headers: {
         'Authorization': 'Bearer $token',
       },
     );
-    if (response.statusCode != 204) {
+    if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Erreur lors de la suppression de la filière');
+    }
+  }
+
+  Future<void> modifierFiliere(int filiereId, String nouveauNom) async {
+    final token = await _getToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/$filiereId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'filiere': nouveauNom}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la modification de la filière');
     }
   }
 }

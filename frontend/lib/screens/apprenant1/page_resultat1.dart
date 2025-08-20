@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class ResultatsDialogContent1 extends StatelessWidget {

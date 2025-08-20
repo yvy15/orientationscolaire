@@ -96,6 +96,7 @@ class _DashboardClassesState extends State<DashboardClasses> {
 
   void _supprimerClasse(int id) async {
     await ClasseService().supprimerClasse(id);
+    _classeController.clear();
     await _chargerClasses(); // Rechargez les classes après suppression
   }
 
@@ -181,6 +182,7 @@ class _DashboardClassesState extends State<DashboardClasses> {
                                 icon: const Icon(Icons.delete, color: Colors.red),
                                 tooltip: 'Supprimer la classe',
                                 onPressed: () => _supprimerClasse(classe.id ?? 0),
+
                               ),
                             ],
                           ),
