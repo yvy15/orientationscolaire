@@ -1,6 +1,6 @@
 package com.recommandation.OrientationScolaire.Controllers;
 
-import com.recommandation.OrientationScolaire.Models.Apprenant;
+
 import com.recommandation.OrientationScolaire.Models.Etablissement;
 import com.recommandation.OrientationScolaire.Models.Utilisateur;
 import com.recommandation.OrientationScolaire.Packages.EtablissementRequest;
@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
+
 import java.util.Optional;
 
 @RestController

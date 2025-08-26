@@ -1,7 +1,7 @@
 package com.recommandation.OrientationScolaire.Models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,5 +24,8 @@ public class Etablissement {
 
     @Column(nullable = true, unique = false)
     private String region;
+
+     @OneToMany(mappedBy = "etablissement")
+    private List<Apprenant> apprenants;
 
 }

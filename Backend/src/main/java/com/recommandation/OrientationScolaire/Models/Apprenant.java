@@ -26,8 +26,9 @@ public class Apprenant {
     @Column(nullable = true, unique = false)
     private String niveau;
 
-    @Column(nullable = true, unique = false)
-    private String etablissement;
+    @ManyToOne
+    @JoinColumn(name = "etablissement_id")
+    private Etablissement etablissement;
 
     @Column(nullable = false, unique = false)
     private String secteur_activite;
@@ -37,5 +38,20 @@ public class Apprenant {
     }
 
     public void setAutreMetier(String autreMetier) {
+    }
+
+    public Object getFiliere() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getFiliere'");
+    }
+
+    public void setClasse(Class<? extends Apprenant> class1) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setClasse'");
+    }
+
+    public void setFiliere(Object filiere) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setFiliere'");
     }
 }

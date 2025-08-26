@@ -6,15 +6,17 @@ import com.recommandation.OrientationScolaire.Models.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+import java.util.List;
 import java.util.Optional;
 
-public interface ApprenantRepository extends JpaRepository<Apprenant, String> {
+public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
 
 
     Optional<Apprenant> findByMatricule(String matricule);
     Optional<Apprenant> findByNiveau(String niveau);
     Optional<Apprenant> findByEtablissement(Etablissement etablissement);
+
+    List<Apprenant> findByEtablissementId(Integer etablissementId);
 
     @Query("SELECT u FROM Apprenant u WHERE u.secteur_activite = :secteur_activite")
     Optional<Apprenant> findBySecteur_activite(@Param("secteur_activite") String secteur_activite);

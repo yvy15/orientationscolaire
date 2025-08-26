@@ -20,6 +20,11 @@ public class WebConfig {
                         .requestMatchers("/api/etablissements/**").permitAll()
                         .requestMatchers("/api/classes/**").permitAll()
                         .requestMatchers("/api/filieres/**").permitAll()
+                        .requestMatchers("/api/niveaux/**").permitAll()
+                        .requestMatchers("/api/utilisateurs/**").permitAll()
+                        .requestMatchers("/api/apprenants/**").permitAll()
+                        .requestMatchers("/api/matieres/**").permitAll()
+                        .requestMatchers("/api/notes/**").permitAll()
                         .anyRequest().authenticated()
 
 

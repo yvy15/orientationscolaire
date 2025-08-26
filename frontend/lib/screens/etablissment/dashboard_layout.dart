@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/etablissment/dashboard_classes.dart';
 import 'dashboard_home.dart';
-import 'dashboard_eleves.dart';
+import 'package:frontend/screens/etablissment/gerer_apprenant.dart';
+// import 'dashboard_apprenants.dart';
 import 'dashboard_filieres.dart';
 
 class DashboardLayout extends StatefulWidget {
@@ -24,7 +25,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       DashboardHome(utilisateur: widget.utilisateur),
-      AjouterApprenantsPage(),
+      GererApprenant(),
       DashboardFilieres(),
       const Center(child: Text('Statistiques (à venir)', style: TextStyle(fontSize: 20))),
       DashboardClasses(),
@@ -66,7 +67,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
             ),
             ListTile(
               leading: const Icon(Icons.school),
-              title: const Text('Apprenants orienter'),
+              title: const Text('Gerer Apprenant'),
               onTap: () => _setPage(1),
             ),
             ListTile(
