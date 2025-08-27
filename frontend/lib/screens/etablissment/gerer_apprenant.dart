@@ -1,11 +1,12 @@
-
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Classe.dart';
 import 'package:frontend/models/Apprenant.dart';
 import 'package:frontend/services/Classeservice.dart';
 import 'package:frontend/services/ApprenantService.dart';
 import 'package:frontend/services/Filiereservice.dart';
+import 'package:frontend/services/MatiereService.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/services/NoteService.dart';
 
 class GererApprenant extends StatefulWidget {
   const GererApprenant({Key? key}) : super(key: key);
@@ -29,29 +30,12 @@ class _GererApprenantState extends State<GererApprenant> {
   @override
   void initState() {
     super.initState();
+    _chargerMatieres();
     _chargerClassesEtFilieres();
     _chargerApprenants();
   }
 
-  Future<String?> _getUtilisateurEmail() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('email');
-  }
-
-
-  // Ajout des contrôleurs pour la note
-  final TextEditingController _noteController = TextEditingController();
-  final TextEditingController _typeEvalController = TextEditingController();
-  DateTime? _dateEvaluation;
-  String? _matiereSelectionnee;
-  List<Map<String, dynamic>> _matieres = [];
-  List<Map<String, dynamic>> _notesTemp = [];
-  _chargerMatieres();
-
-
-  Future<void> _chargerClassesEtFilieres() async {
   Future<void> _chargerMatieres() async {
-    // Charger les matières dynamiquement
     final matieres = await MatiereService().getMatieres();
     setState(() {
       _matieres = matieres;
@@ -60,21 +44,42 @@ class _GererApprenantState extends State<GererApprenant> {
       }
     });
   }
+
+  Future<String?> _getUtilisateurEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('email');
+  }
+
+  // Ajout des contrôleurs pour la note
+  final TextEditingController _noteController = TextEditingController();
+  final TextEditingController _typeEvalController = TextEditingController();
+  DateTime? _dateEvaluation;
+  String? _matiereSelectionnee;
+  List<Map<String, dynamic>> _matieres = [];
+  List<Map<String, dynamic>> _notesTemp = [];
+
+  Future<void> _chargerClassesEtFilieres() async {
     final userEmail = await _getUtilisateurEmail();
     if (userEmail != null && userEmail.isNotEmpty) {
-      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      final etablissement =
+          await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
       if (etablissement != null) {
         int etablissementId = etablissement.id;
         _classes = await ClasseService().getClasses(etablissementId);
         _listeClasses = _classes.map((c) => c.classe).toList();
 
         // Charger filières par classe
-        _donneesFilieres = await FiliereService().getFilieresParClassePourEtablissement(etablissementId);
+        _donneesFilieres = await FiliereService()
+            .getFilieresParClassePourEtablissement(etablissementId);
 
         setState(() {
-          if (_listeClasses.isNotEmpty) _classeSelectionnee = _listeClasses.first;
-          if (_classeSelectionnee != null && _donneesFilieres[_classeSelectionnee!] != null) {
-            _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
+          if (_listeClasses.isNotEmpty)
+            _classeSelectionnee = _listeClasses.first;
+          if (_classeSelectionnee != null &&
+              _donneesFilieres[_classeSelectionnee!] != null) {
+            _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!
+                .first['filiere']
+                .toString();
           }
         });
       }
@@ -82,13 +87,19 @@ class _GererApprenantState extends State<GererApprenant> {
   }
 
   Future<void> _chargerApprenants() async {
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
     final userEmail = await _getUtilisateurEmail();
     if (userEmail != null && userEmail.isNotEmpty) {
-      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      final etablissement =
+          await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
       if (etablissement != null) {
         try {
-          _apprenants = await ApprenantService().getApprenantsParEtablissement(etablissement.id);
+          final apprenantsData =
+              await ApprenantService().getApprenants(etablissement.id);
+          _apprenants =
+              apprenantsData.map((data) => Apprenant.fromJson(data)).toList();
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Erreur chargement apprenants: $e')),
@@ -96,21 +107,28 @@ class _GererApprenantState extends State<GererApprenant> {
         }
       }
     }
-    setState(() { _isLoading = false; });
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _ajouterApprenant() async {
-  // Enregistrement des notes associées
-  // ...existing code...
+    // Enregistrement des notes associées
+    // ...existing code...
     final matricule = _matriculeController.text.trim();
-    if (matricule.isEmpty || _classeSelectionnee == null || _filiereSelectionnee == null || _dateInscription == null) {
+    if (matricule.isEmpty ||
+        _classeSelectionnee == null ||
+        _filiereSelectionnee == null ||
+        _dateInscription == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Veuillez remplir tous les champs')),
       );
       return;
     }
 
-    final classeObj = _classes.firstWhere((c) => c.classe == _classeSelectionnee, orElse: () => Classe(id: null, classe: '', etablissement: null));
+    final classeObj = _classes.firstWhere(
+        (c) => c.classe == _classeSelectionnee,
+        orElse: () => Classe(id: null, classe: '', etablissement: null));
     if (classeObj.id == null) return;
 
     // Préparer l'objet apprenant pour l'API
@@ -122,16 +140,19 @@ class _GererApprenantState extends State<GererApprenant> {
     };
 
     // Ajouter l'apprenant et récupérer son id
-    final apprenantResponse = await ApprenantService().ajouterApprenant(newApprenant);
+    final apprenantResponse =
+        await ApprenantService().ajouterApprenant(newApprenant);
     final apprenantId = apprenantResponse['id'];
 
     // Ajouter les notes associées
     for (var note in _notesTemp) {
-      final matiereObj = _matieres.firstWhere((m) => m['nom'] == note['matiere'], orElse: () => null);
+      final matiereObj = _matieres.firstWhere(
+          (m) => m['nom'] == note['matiere'],
+          orElse: () => <String, dynamic>{});
       final noteData = {
         'valeur': note['note'],
         'id_apprenant': apprenantId,
-        'id_matiere': matiereObj != null ? matiereObj['id'] : null,
+        'id_matiere': matiereObj['id'],
         'type_eval': note['type_eval'],
         'date_eval': (note['date_eval'] as DateTime).toIso8601String(),
         'matiere': note['matiere'],
@@ -142,121 +163,42 @@ class _GererApprenantState extends State<GererApprenant> {
     _matriculeController.clear();
     setState(() {
       _dateInscription = null;
-      _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
+      _filiereSelectionnee =
+          _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
       _notesTemp.clear();
     });
     await _chargerApprenants();
   }
 
-  _selectDate() async {
-  _selectDateEval() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _dateEvaluation ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _dateEvaluation = picked;
-      });
-    }
+  void _selectDateEval() async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: _dateEvaluation ?? DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime.now(),
+  );
+  if (picked != null) {
+    setState(() {
+      _dateEvaluation = picked;
+    });
   }
+}
+  _selectDate() async {
+    _selectDateEval() async {
+      final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: _dateEvaluation ?? DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime.now(),
+      );
+      if (picked != null) {
+        setState(() {
+          _dateEvaluation = picked;
+        });
+      }
+    }
+
     // Formulaire pour ajouter une note
-    Widget noteForm = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Ajouter une note', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _matiereSelectionnee,
-                decoration: const InputDecoration(labelText: 'Matière', border: OutlineInputBorder()),
-                items: _matieres.map((m) => DropdownMenuItem(value: m['nom'], child: Text(m['nom']))).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _matiereSelectionnee = val;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _typeEvalController,
-                decoration: const InputDecoration(labelText: 'Type d\'évaluation', border: OutlineInputBorder()),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _noteController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Note', border: OutlineInputBorder()),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: _dateEvaluation == null ? 'Date d\'évaluation' : 'Date: ${_dateEvaluation!.toLocal()}'.split(' ')[0],
-                  border: const OutlineInputBorder(),
-                ),
-                onTap: _selectDateEval,
-              ),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton(
-              onPressed: () {
-                if (_matiereSelectionnee != null && _typeEvalController.text.isNotEmpty && _noteController.text.isNotEmpty && _dateEvaluation != null) {
-                  setState(() {
-                    _notesTemp.add({
-                      'matiere': _matiereSelectionnee,
-                      'type_eval': _typeEvalController.text,
-                      'note': double.tryParse(_noteController.text) ?? 0.0,
-                      'date_eval': _dateEvaluation,
-                    });
-                    _typeEvalController.clear();
-                    _noteController.clear();
-                    _dateEvaluation = null;
-                  });
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Remplir tous les champs de la note')));
-                }
-              },
-              child: const Text('Ajouter une note'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (_notesTemp.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Notes ajoutées :'),
-              ..._notesTemp.map((n) => ListTile(
-                title: Text('${n['matiere']} - ${n['type_eval']}'),
-                subtitle: Text('Note: ${n['note']} | Date: ${n['date_eval']}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    setState(() {
-                      _notesTemp.remove(n);
-                    });
-                  },
-                ),
-              ))
-            ],
-          ),
-      ],
-    );
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _dateInscription ?? DateTime.now(),
@@ -277,11 +219,13 @@ class _GererApprenantState extends State<GererApprenant> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Ajouter un nouvel apprenant', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const Text('Ajouter un nouvel apprenant',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           TextField(
             controller: _matriculeController,
-            decoration: const InputDecoration(labelText: 'Matricule', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+                labelText: 'Matricule', border: OutlineInputBorder()),
           ),
           const SizedBox(height: 12),
           Row(
@@ -290,13 +234,19 @@ class _GererApprenantState extends State<GererApprenant> {
                 flex: 2,
                 child: DropdownButtonFormField<String>(
                   value: _classeSelectionnee,
-                  decoration: const InputDecoration(labelText: 'Classe', border: OutlineInputBorder()),
-                  items: _listeClasses.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  decoration: const InputDecoration(
+                      labelText: 'Classe', border: OutlineInputBorder()),
+                  items: _listeClasses
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
                   onChanged: (val) {
                     setState(() {
                       _classeSelectionnee = val;
                       if (_donneesFilieres[_classeSelectionnee!] != null) {
-                        _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
+                        _filiereSelectionnee =
+                            _donneesFilieres[_classeSelectionnee!]!
+                                .first['filiere']
+                                .toString();
                       }
                     });
                   },
@@ -307,9 +257,15 @@ class _GererApprenantState extends State<GererApprenant> {
                 flex: 3,
                 child: DropdownButtonFormField<String>(
                   value: _filiereSelectionnee,
-                  decoration: const InputDecoration(labelText: 'Filière', border: OutlineInputBorder()),
-                  items: (_classeSelectionnee != null && _donneesFilieres[_classeSelectionnee!] != null)
-                      ? _donneesFilieres[_classeSelectionnee!]!.map((f) => DropdownMenuItem(value: f['filiere'].toString(), child: Text(f['filiere'].toString()))).toList()
+                  decoration: const InputDecoration(
+                      labelText: 'Filière', border: OutlineInputBorder()),
+                  items: (_classeSelectionnee != null &&
+                          _donneesFilieres[_classeSelectionnee!] != null)
+                      ? _donneesFilieres[_classeSelectionnee!]!
+                          .map((f) => DropdownMenuItem(
+                              value: f['filiere'].toString(),
+                              child: Text(f['filiere'].toString())))
+                          .toList()
                       : [],
                   onChanged: (val) {
                     setState(() {
@@ -326,21 +282,139 @@ class _GererApprenantState extends State<GererApprenant> {
               Expanded(
                 child: TextField(
                   readOnly: true,
-                  decoration: InputDecoration(labelText: _dateInscription == null ? 'Date d\'inscription' : 'Date: ${_dateInscription!.toLocal()}'.split(' ')[0], border: const OutlineInputBorder()),
+                  decoration: InputDecoration(
+                      labelText: _dateInscription == null
+                          ? 'Date d\'inscription'
+                          : 'Date: ${_dateInscription!.toLocal()}'
+                              .split(' ')[0],
+                      border: const OutlineInputBorder()),
                   onTap: _selectDate,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          noteForm,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Ajouter une note',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _matiereSelectionnee,
+                      decoration: const InputDecoration(
+                          labelText: 'Matière', border: OutlineInputBorder()),
+                      items: _matieres
+                          .map((m) => DropdownMenuItem<String>(
+                              value: m['nom'], child: Text(m['nom'])))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _matiereSelectionnee = val;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _typeEvalController,
+                      decoration: const InputDecoration(
+                          labelText: 'Type d\'évaluation',
+                          border: OutlineInputBorder()),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _noteController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                          labelText: 'Note', border: OutlineInputBorder()),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: _dateEvaluation == null
+                            ? 'Date d\'évaluation'
+                            : 'Date: ${_dateEvaluation!.toLocal()}'
+                                .split(' ')[0],
+                        border: const OutlineInputBorder(),
+                      ),
+                      onTap: _selectDateEval,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_matiereSelectionnee != null &&
+                          _typeEvalController.text.isNotEmpty &&
+                          _noteController.text.isNotEmpty &&
+                          _dateEvaluation != null) {
+                        setState(() {
+                          _notesTemp.add({
+                            'matiere': _matiereSelectionnee,
+                            'type_eval': _typeEvalController.text,
+                            'note':
+                                double.tryParse(_noteController.text) ?? 0.0,
+                            'date_eval': _dateEvaluation,
+                          });
+                          _typeEvalController.clear();
+                          _noteController.clear();
+                          _dateEvaluation = null;
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Remplir tous les champs de la note')));
+                      }
+                    },
+                    child: const Text('Ajouter une note'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (_notesTemp.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Notes ajoutées :'),
+                    ..._notesTemp.map((n) => ListTile(
+                          title: Text('${n['matiere']} - ${n['type_eval']}'),
+                          subtitle: Text(
+                              'Note: ${n['note']} | Date: ${n['date_eval']}'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                _notesTemp.remove(n);
+                              });
+                            },
+                          ),
+                        ))
+                  ],
+                ),
+            ],
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _ajouterApprenant,
             child: const Text('Ajouter Apprenant'),
           ),
           const SizedBox(height: 20),
-          const Text('Apprenants de votre établissement', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text('Apprenants de votre établissement',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Expanded(
             child: _isLoading
@@ -355,7 +429,8 @@ class _GererApprenantState extends State<GererApprenant> {
                             margin: const EdgeInsets.symmetric(vertical: 6),
                             child: ListTile(
                               title: Text(apprenant.matricule),
-                              subtitle: Text('Classe: ${apprenant.classe} | Filière: ${apprenant.filiere}\nDate: ${apprenant.dateInscription.toString().split(' ')[0]}'),
+                              subtitle: Text(
+                                  'Classe: ${apprenant.classe ?? ''} | Filière: ${apprenant.filiere ?? ''}\nDate: ${apprenant.dateInscription != null ? apprenant.dateInscription!.toString().split(' ')[0] : ''}'),
                               // On ajoutera les boutons Modifier/Supprimer dans l'étape suivante
                             ),
                           );
