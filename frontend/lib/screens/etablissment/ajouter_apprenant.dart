@@ -13,6 +13,7 @@ class AjouterApprenantScreen extends StatefulWidget {
 }
 
 class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
+  int? _apprenantEnEditionId;
   List<Map<String, dynamic>> _apprenants = [];
   final TextEditingController _matriculeController = TextEditingController();
   String? _classeSelectionnee;
@@ -37,19 +38,28 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
   }
 
   Future<void> _chargerClassesEtFilieres() async {
+    print("ici je suis venu");
     final userEmail = await _getUtilisateurEmail();
     if (userEmail != null && userEmail.isNotEmpty) {
-      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      final etablissement =
+          await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
       if (etablissement != null) {
         int etablissementId = etablissement.id;
         _classes = await ClasseService().getClasses(etablissementId);
         _listeClasses = _classes.map((c) => c.classe).toList();
-        _donneesFilieres = await FiliereService().getFilieresParClassePourEtablissement(etablissementId);
+        _donneesFilieres = await FiliereService()
+            .getFilieresParClassePourEtablissement(etablissementId);
         setState(() {
+          //print("ici je suis venu 2");
+          print("voici la liste des classes : $_listeClasses");
+          print("voici les filieres : $_donneesFilieres");
           if (_listeClasses.isNotEmpty)
             _classeSelectionnee = _listeClasses.first;
-          if (_classeSelectionnee != null && _donneesFilieres[_classeSelectionnee!] != null) {
-            _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
+          if (_classeSelectionnee != null &&
+              _donneesFilieres[_classeSelectionnee!] != null) {
+            _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!
+                .first['filiere']
+                .toString();
           }
         });
         await _chargerApprenants();
@@ -60,7 +70,8 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
   Future<void> _chargerApprenants() async {
     final userEmail = await _getUtilisateurEmail();
     if (userEmail != null && userEmail.isNotEmpty) {
-      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      final etablissement =
+          await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
       if (etablissement != null) {
         int etablissementId = etablissement.id;
         _apprenants = await ApprenantService().getApprenants(etablissementId);
@@ -71,7 +82,10 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
 
   Future<void> _ajouterApprenant() async {
     final matricule = _matriculeController.text.trim();
-    if (matricule.isEmpty || _classeSelectionnee == null || _filiereSelectionnee == null || _dateInscription == null) {
+    if (matricule.isEmpty ||
+        _classeSelectionnee == null ||
+        _filiereSelectionnee == null ||
+        _dateInscription == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Veuillez remplir tous les champs')));
       return;
@@ -87,19 +101,33 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
       (f) => f['filiere'].toString() == _filiereSelectionnee,
       orElse: () => <String, dynamic>{},
     );
-    if (filiereObj == null || filiereObj.isEmpty || filiereObj['id'] == null) return;
+    if (filiereObj == null || filiereObj.isEmpty || filiereObj['id'] == null)
+      return;
 
-    final newApprenant = {
+    final apprenantData = {
       'matricule': matricule,
       'classeId': classeObj.id,
       'filiereId': filiereObj['id'],
       'dateInscription': _dateInscription!.toIso8601String().substring(0, 10),
     };
-
-    await ApprenantService().ajouterApprenant(newApprenant);
+     print("voici la filiere identifiant : ${filiereObj['id']}");
+   
+    if (_apprenantEnEditionId != null) {
+      // Modifier
+      await ApprenantService()
+          .modifierApprenant(_apprenantEnEditionId!, apprenantData);
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Apprenant modifié avec succès')));
+    } else {
+      // Ajouter
+      await ApprenantService().ajouterApprenant(apprenantData);
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Apprenant ajouté avec succès')));
+    }
     _matriculeController.clear();
     setState(() {
       _dateInscription = null;
+      _apprenantEnEditionId = null;
       if (_donneesFilieres[_classeSelectionnee!] != null &&
           _donneesFilieres[_classeSelectionnee!]!.isNotEmpty) {
         _filiereSelectionnee =
@@ -109,8 +137,6 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
       }
     });
     await _chargerApprenants();
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Apprenant ajouté avec succès')));
   }
 
   void _selectDate() async {
@@ -158,15 +184,16 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
                   decoration: const InputDecoration(
                       labelText: 'Classe', border: OutlineInputBorder()),
                   items: _listeClasses
-                      .map((c) => DropdownMenuItem(
-                          value: c, child: Text(c)))
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
                   onChanged: (val) {
                     setState(() {
                       _classeSelectionnee = val;
                       if (_donneesFilieres[_classeSelectionnee!] != null) {
                         _filiereSelectionnee =
-                            _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
+                            _donneesFilieres[_classeSelectionnee!]!
+                                .first['filiere']
+                                .toString();
                       }
                     });
                   },
@@ -225,9 +252,95 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
                         child: ListTile(
                           title: Text(apprenant['matricule'] ?? ''),
                           subtitle: Text(
-                            'Classe : ${apprenant['classe']?['classe'] ?? 'N/A'}\n'
+                            'Classe : ${apprenant['nomclasse'] ?? 'N/A'}\n'
                             'Filière : ${apprenant['filiere']?['filiere'] ?? 'N/A'}\n'
                             'Inscrit le : ${apprenant['dateInscription']?.substring(0, 10) ?? 'N/A'}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
+                                tooltip: 'Modifier',
+                                onPressed: () {
+                                  setState(() {
+                                    _apprenantEnEditionId = apprenant['id'];
+                                    _matriculeController.text =
+                                        apprenant['matricule'] ?? '';
+                                    _classeSelectionnee =
+                                        apprenant['nomclasse'];
+                                    // Synchronise la filière avec la classe sélectionnée
+                                    final filieres = _donneesFilieres[
+                                            _classeSelectionnee!] ??
+                                        [];
+                                    final filiereApprenant =
+                                        apprenant['filiere']?['filiere']
+                                            ?.toString();
+                                    final filiereTrouvee = filieres.firstWhere(
+                                      (f) =>
+                                          f['filiere'].toString() ==
+                                          filiereApprenant,
+                                      orElse: () => filieres.isNotEmpty
+                                          ? filieres.first
+                                          : <String, dynamic>{},
+                                    );
+                                    _filiereSelectionnee = filiereTrouvee
+                                            .isNotEmpty
+                                        ? filiereTrouvee['filiere'].toString()
+                                        : null;
+                                    if (apprenant['dateInscription'] != null) {
+                                      final date = DateTime.tryParse(
+                                          apprenant['dateInscription']);
+                                      if (date != null) _dateInscription = date;
+                                    }
+                                  });
+                                },
+                              ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                tooltip: 'Supprimer',
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Confirmation'),
+                                      content: const Text(
+                                          'Voulez-vous vraiment supprimer cet apprenant ?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(false),
+                                          child: const Text('Annuler'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(true),
+                                          child: const Text('Supprimer'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    try {
+                                      await ApprenantService()
+                                          .supprimerApprenant(apprenant['id']);
+                                      await _chargerApprenants();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'Apprenant supprimé avec succès')));
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  'Erreur lors de la suppression: $e')));
+                                    }
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -237,7 +350,9 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _ajouterApprenant,
-            child: const Text('Ajouter Apprenant'),
+            child: Text(_apprenantEnEditionId != null
+                ? 'Modifier Apprenant'
+                : 'Ajouter Apprenant'),
           ),
         ],
       ),

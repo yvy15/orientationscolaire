@@ -13,9 +13,12 @@ class Classe {
 
   factory Classe.fromJson(Map<String, dynamic> json) {
     return Classe(
-      id: json['id'] as int,
+      id: json['id'] as int?,
       classe: json['classe'] as String,
-      etablissement: Etablissement.fromJson(json['etablissement'] as Map<String, dynamic>), // Traitez l'établissement comme un objet
+      etablissement: json['etablissement'] != null
+          ? Etablissement.fromJson(
+              json['etablissement'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -23,7 +26,7 @@ class Classe {
     return {
       'id': id,
       'classe': classe,
-      'etablissement': etablissement?.toJson() ,
+      'etablissement': etablissement?.toJson(),
     };
   }
 }

@@ -1,5 +1,6 @@
 package com.recommandation.OrientationScolaire.Models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 import lombok.Getter;
@@ -26,6 +27,7 @@ public class Etablissement {
     private String region;
 
      @OneToMany(mappedBy = "etablissement")
+     @JsonManagedReference
     private List<Apprenant> apprenants;
 
 }

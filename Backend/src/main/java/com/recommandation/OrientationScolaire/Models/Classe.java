@@ -1,5 +1,6 @@
 package com.recommandation.OrientationScolaire.Models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -22,6 +23,7 @@ public class Classe {
 
     @ManyToOne
     @JoinColumn(name = "etablissement", referencedColumnName = "id", nullable = false)
+    @JsonBackReference
     private Etablissement etablissement;
 
     @JsonCreator

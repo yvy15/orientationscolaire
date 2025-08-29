@@ -1,5 +1,6 @@
 package com.recommandation.OrientationScolaire.Models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,7 @@ public class Apprenant {
 
     @ManyToOne
     @JoinColumn(name = "etablissement_id")
+    @JsonBackReference
     private Etablissement etablissement;
 
     @Column(nullable = true)
@@ -49,6 +51,8 @@ public class Apprenant {
     @ManyToOne
     @JoinColumn(name = "filiere_id")
     private Filiere filiere;
+
+    private String nomclasse;
 
     @Column(nullable = true)
     private LocalDate dateInscription;
