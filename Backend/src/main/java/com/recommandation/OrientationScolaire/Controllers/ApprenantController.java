@@ -1,7 +1,6 @@
 package com.recommandation.OrientationScolaire.Controllers;
 
 import com.recommandation.OrientationScolaire.Models.Apprenant;
-
 import com.recommandation.OrientationScolaire.Services.ApprenantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +10,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/apprenants")
 public class ApprenantController {
+
     @Autowired
     private ApprenantService apprenantService;
+
+    @GetMapping(params = "filiereId")
+    public List<Apprenant> getApprenantsByFiliere(@RequestParam Integer filiereId) {
+        return apprenantService.getAllApprenantsByFiliere(filiereId);
+    }
 
     @GetMapping(params = "etablissementId")
     public List<Apprenant> getAllApprenants(@RequestParam Integer etablissementId) {
@@ -21,6 +26,12 @@ public class ApprenantController {
 
     @PostMapping
     public Apprenant addApprenant(@RequestBody Apprenant apprenant) {
+        // Affiche l'id de la filière pour debug
+    if (apprenant.getFiliere() != null) {
+        System.out.println("ID Filière reçu : " + apprenant.getFiliere().getId());
+    } else {
+        System.out.println("Aucune filière reçue !");
+    }
         return apprenantService.addApprenant(apprenant);
     }
 

@@ -13,9 +13,9 @@ public class MatiereController {
     @Autowired
     private MatiereService matiereService;
 
-    @GetMapping
-    public List<Matiere> getAllMatieres() {
-        return matiereService.getAllMatieres();
+    @GetMapping(params = "filiereId")
+    public List<Matiere> getAllMatieres(@RequestParam Long filiereId) {
+        return matiereService.getAllMatieres(filiereId);
     }
 
     @GetMapping("/{id}")

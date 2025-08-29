@@ -11,6 +11,8 @@ import java.util.Optional;
 
 public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
 
+    List<Apprenant> findByFiliereId(Integer filiereId);
+
 
     Optional<Apprenant> findByMatricule(String matricule);
     Optional<Apprenant> findByNiveau(String niveau);

@@ -14,9 +14,11 @@ public class MatiereService {
     @Autowired
     private MatiereRepository matiereRepository;
 
-    public List<Matiere> getAllMatieres() {
-        return matiereRepository.findAll();
-    }
+  public List<Matiere> getAllMatieres(Long filiereId) {
+    return matiereRepository.findByFiliere_Id(filiereId);
+}
+
+
 
     public Optional<Matiere> getMatiereById(Long id) {
         return matiereRepository.findById(id);

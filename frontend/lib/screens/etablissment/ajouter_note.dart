@@ -1,0 +1,262 @@
+import 'package:flutter/material.dart';
+import 'package:frontend/models/Classe.dart';
+import 'package:frontend/models/Matiere.dart';
+import 'package:frontend/services/Classeservice.dart';
+import 'package:frontend/services/ApprenantService.dart';
+import 'package:frontend/services/Filiereservice.dart';
+import 'package:frontend/services/MatiereService.dart';
+import 'package:frontend/services/NoteService.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AjouterNoteScreen extends StatefulWidget {
+  const AjouterNoteScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AjouterNoteScreen> createState() => _AjouterNoteScreenState();
+}
+
+class _AjouterNoteScreenState extends State<AjouterNoteScreen> {
+  String? _classeSelectionnee;
+  String? _filiereSelectionnee;
+  String? _matriculeSelectionne;
+  Matiere? _matiereSelectionnee;
+  String? _typeEvalSelectionne;
+  DateTime? _dateEvaluation;
+  final TextEditingController _noteController = TextEditingController();
+
+  List<Classe> _classes = [];
+  List<String> _listeClasses = [];
+  Map<String, List<Map<String, dynamic>>> _donneesFilieres = {};
+  List<Matiere> _matieres = [];
+  List<Map<String, dynamic>> _apprenants = [];
+  final List<String> _typesEvaluation = ['Examen', 'Devoir', 'Interrogation'];
+
+  @override
+  void initState() {
+    super.initState();
+    _chargerClassesEtFilieres();
+  }
+
+  Future<String?> _getUtilisateurEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('email');
+  }
+
+  Future<void> _chargerClassesEtFilieres() async {
+    final userEmail = await _getUtilisateurEmail();
+    if (userEmail != null && userEmail.isNotEmpty) {
+      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      if (etablissement != null) {
+        int etablissementId = etablissement.id;
+        _classes = await ClasseService().getClasses(etablissementId);
+        _listeClasses = _classes.map((c) => c.classe).toList();
+        _donneesFilieres = await FiliereService().getFilieresParClassePourEtablissement(etablissementId);
+        setState(() {
+          if (_listeClasses.isNotEmpty) {
+            _classeSelectionnee = _listeClasses.first;
+          }
+          if (_classeSelectionnee != null && _donneesFilieres[_classeSelectionnee!] != null) {
+            _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
+          }
+        });
+        await _chargerMatieresEtApprenants();
+      }
+    }
+  }
+
+  // Ajout du Dropdown filière et chargement dynamique
+  void _onFiliereChanged(String? nouvelleFiliere) async {
+    setState(() {
+      _filiereSelectionnee = nouvelleFiliere;
+    });
+    await _chargerMatieresEtApprenants();
+  }
+Future<void> _chargerMatieresEtApprenants() async {
+  if (_filiereSelectionnee != null && _classeSelectionnee != null) {
+    final filiereList = _donneesFilieres[_classeSelectionnee!];
+    final filiereObj = filiereList?.firstWhere(
+      (f) => f['filiere'].toString() == _filiereSelectionnee,
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (filiereObj == null || filiereObj.isEmpty || filiereObj['id'] == null) return;
+
+    final filiereId = filiereObj['id'] as int;
+
+    _matieres = await MatiereService().getMatieres(filiereId);
+    _apprenants = await ApprenantService().getApprenantsParFiliere(filiereId);
+
+
+    setState(() {
+      _matiereSelectionnee = _matieres.isNotEmpty ? _matieres.first : null;
+      _matriculeSelectionne = _apprenants.isNotEmpty ? _apprenants.first['matricule']?.toString() : null;
+    });
+  }
+}
+
+
+  Future<void> _ajouterNote() async {
+    if (_classeSelectionnee == null || _filiereSelectionnee == null || _matriculeSelectionne == null || _matiereSelectionnee == null || _typeEvalSelectionne == null || _noteController.text.isEmpty || _dateEvaluation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez remplir tous les champs')));
+      return;
+    }
+
+    final apprenantObj = _apprenants.firstWhere((a) => a['matricule'] == _matriculeSelectionne, orElse: () => <String, dynamic>{});
+    if (apprenantObj['id'] == null) return;
+
+    final noteData = {
+      'valeur': double.tryParse(_noteController.text.trim()) ?? 0.0,
+      'apprenant': {'id': apprenantObj['id']},
+      'matiere': {'id': _matiereSelectionnee!.id},
+      'type_eval': _typeEvalSelectionne,
+      'date_eval': _dateEvaluation!.toIso8601String(),
+    };
+
+    await NoteService().ajouterNote(noteData);
+    _noteController.clear();
+    setState(() {
+      _dateEvaluation = null;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note ajoutée avec succès')));
+  }
+
+  void _selectDateEval() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _dateEvaluation ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _dateEvaluation = picked;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Ajouter une note', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<String>(
+                  value: _classeSelectionnee,
+                  decoration: const InputDecoration(labelText: 'Classe', border: OutlineInputBorder()),
+                  items: _listeClasses.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _classeSelectionnee = val;
+                      if (_donneesFilieres[_classeSelectionnee!] != null) {
+                        _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
+                      }
+                    });
+                    _chargerMatieresEtApprenants();
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 3,
+                child: DropdownButtonFormField<String>(
+                  value: _filiereSelectionnee,
+                  decoration: const InputDecoration(labelText: 'Filière', border: OutlineInputBorder()),
+                  items: (_classeSelectionnee != null && _donneesFilieres[_classeSelectionnee!] != null)
+                      ? _donneesFilieres[_classeSelectionnee!]!.map((f) => DropdownMenuItem(value: f['filiere'].toString(), child: Text(f['filiere'].toString()))).toList()
+                      : [],
+                  onChanged: _onFiliereChanged,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _matriculeSelectionne,
+                  decoration: const InputDecoration(labelText: 'Matricule', border: OutlineInputBorder()),
+                  items: _apprenants.map((a) {
+                    final matricule = a['matricule']?.toString() ?? '';
+                    return DropdownMenuItem<String>(
+                      value: matricule,
+                      child: Text(matricule),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _matriculeSelectionne = val;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DropdownButtonFormField<Matiere>(
+                  value: _matiereSelectionnee,
+                  decoration: const InputDecoration(labelText: 'Matière', border: OutlineInputBorder()),
+                  items: _matieres.map((m) => DropdownMenuItem(value: m, child: Text(m.nom))).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _matiereSelectionnee = val;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _typeEvalSelectionne,
+                  decoration: const InputDecoration(labelText: 'Type d\'évaluation', border: OutlineInputBorder()),
+                  items: _typesEvaluation.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _typeEvalSelectionne = val;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _noteController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Note', border: OutlineInputBorder()),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _selectDateEval,
+                  child: Text(_dateEvaluation == null ? 'Sélectionner la date' : 'Date: ${_dateEvaluation!.toLocal()}'.split(' ')[0]),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _ajouterNote,
+                  child: const Text('Ajouter la note'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

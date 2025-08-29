@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/etablissment/dashboard_classes.dart';
 import 'dashboard_home.dart';
-import 'package:frontend/screens/etablissment/gerer_apprenant.dart';
+//import 'package:frontend/screens/etablissment/gerer_apprenant.dart';
 import 'dashboard_filieres.dart';
+import 'ajouter_apprenant.dart';
+import 'ajouter_note.dart';
 
 class DashboardLayout extends StatefulWidget {
   final Utilisateur utilisateur;
@@ -23,7 +25,9 @@ class _DashboardLayoutState extends State<DashboardLayout> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       DashboardHome(utilisateur: widget.utilisateur),
-      GererApprenant(),
+      AjouterApprenantScreen(),
+      AjouterNoteScreen(),
+     // GererApprenant(),
       DashboardFilieres(),
       const Center(
           child:
@@ -62,24 +66,34 @@ class _DashboardLayoutState extends State<DashboardLayout> {
               onTap: () => _setPage(0),
             ),
             ListTile(
-              leading: const Icon(Icons.school),
-              title: const Text('Gerer Apprenant'),
+              leading: const Icon(Icons.person_add),
+              title: const Text('Ajouter un apprenant'),
               onTap: () => _setPage(1),
             ),
             ListTile(
+              leading: const Icon(Icons.note_add),
+              title: const Text('Ajouter une note'),
+              onTap: () => _setPage(2),
+            ),
+           /* ListTile(
+              leading: const Icon(Icons.school),
+              title: const Text('Gerer Apprenant'),
+              onTap: () => _setPage(3),
+            ),*/
+            ListTile(
               leading: const Icon(Icons.category),
               title: const Text('Gérer vos filieres'),
-              onTap: () => _setPage(2),
+              onTap: () => _setPage(3),
             ),
             ListTile(
               leading: const Icon(Icons.bar_chart),
               title: const Text('Statistiques'),
-              onTap: () => _setPage(3),
+              onTap: () => _setPage(4),
             ),
             ListTile(
               leading: const Icon(Icons.school),
               title: const Text('Gérer vos classes'),
-              onTap: () => _setPage(4),
+              onTap: () => _setPage(5),
             ),
           ],
         ),

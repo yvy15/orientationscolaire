@@ -3,9 +3,7 @@ package com.recommandation.OrientationScolaire.Models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -13,45 +11,46 @@ import java.util.Optional;
 public class Apprenant {
 
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String matricule;
 
-
     @OneToOne
-    @JoinColumn(name="id_user", referencedColumnName = "id", nullable= false, unique= true)
-    private Utilisateur utilisateur;
+    @JoinColumn(name = "id_user", referencedColumnName = "id", nullable = true, unique = true)
+    private Utilisateur utilisateur; // rendu nullable pour l’interface
 
-    @Column(nullable = true, unique = false)
+    @Column(nullable = true)
     private String niveau;
+
+    @Column(nullable = true)
+    private String secteur_activite;
 
     @ManyToOne
     @JoinColumn(name = "etablissement_id")
     private Etablissement etablissement;
 
-    @Column(nullable = false, unique = false)
-    private String secteur_activite;
+    @Column(nullable = true)
+    private String autreMetier;
 
-
-    public void setListeMetiers(List<String> metiers) {
+    @ElementCollection
+    @CollectionTable(name = "apprenant_metiers", joinColumns = @JoinColumn(name = "apprenant_id"))
+    @Column(name = "metier")
+    private java.util.List<String> listeMetiers;
+    
+    public void setListeMetiers(java.util.List<String> metiers) {
+        this.listeMetiers = metiers;
+    }
+    
+    public java.util.List<String> getListeMetiers() {
+        return this.listeMetiers;
     }
 
-    public void setAutreMetier(String autreMetier) {
-    }
+    @ManyToOne
+    @JoinColumn(name = "filiere_id")
+    private Filiere filiere;
 
-    public Object getFiliere() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getFiliere'");
-    }
+    @Column(nullable = true)
+    private LocalDate dateInscription;
 
-    public void setClasse(Class<? extends Apprenant> class1) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setClasse'");
-    }
-
-    public void setFiliere(Object filiere) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setFiliere'");
-    }
 }

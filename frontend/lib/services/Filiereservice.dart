@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FiliereService {
-  final String baseUrl = 'http://127.0.0.1:8080/api/filieres';
+  final String baseUrl = 'http://localhost:8080/api/filieres';
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -17,7 +17,7 @@ class FiliereService {
     final token = await _getToken();
     // Récupère toutes les classes de l'établissement
     final classesResponse = await http.get(
-      Uri.parse('http://127.0.0.1:8080/api/classes?etablissementId=$etablissementId'),
+      Uri.parse('http://localhost:8080/api/classes?etablissementId=$etablissementId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
