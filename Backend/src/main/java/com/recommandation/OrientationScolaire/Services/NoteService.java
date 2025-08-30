@@ -12,4 +12,21 @@ public class NoteService {
         this.noteRepository = noteRepository;
     }
 
+    public java.util.List<com.recommandation.OrientationScolaire.Models.Note> getAllNotes() {
+        return noteRepository.findAll();
+    }
+
+    public com.recommandation.OrientationScolaire.Models.Note saveNote(com.recommandation.OrientationScolaire.Models.Note note) {
+        return noteRepository.save(note);
+    }
+
+    public com.recommandation.OrientationScolaire.Models.Note updateNote(Long id, com.recommandation.OrientationScolaire.Models.Note note) {
+        note.setId(id);
+        return noteRepository.save(note);
+    }
+
+    public void deleteNote(Long id) {
+        noteRepository.deleteById(id);
+    }
+
 }

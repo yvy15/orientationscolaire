@@ -8,7 +8,11 @@ import java.util.List;
 
 
 public interface MatiereRepository extends JpaRepository<Matiere, Long> {
+   //List<Matiere> findByIdFiliere(Long idFiliere);
+
    List<Matiere> findByFiliere_Id(Long filiereId);
+
+  
 
 
     

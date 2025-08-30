@@ -23,6 +23,7 @@ class _AjouterNoteScreenState extends State<AjouterNoteScreen> {
   String? _typeEvalSelectionne;
   DateTime? _dateEvaluation;
   final TextEditingController _noteController = TextEditingController();
+  List<Map<String, dynamic>> _notes = [];
 
   List<Classe> _classes = [];
   List<String> _listeClasses = [];
@@ -35,6 +36,15 @@ class _AjouterNoteScreenState extends State<AjouterNoteScreen> {
   void initState() {
     super.initState();
     _chargerClassesEtFilieres();
+  _chargerNotes();
+  }
+  Future<void> _chargerNotes() async {
+    try {
+      _notes = await NoteService().getNotes();
+      setState(() {});
+    } catch (e) {
+      // Gérer l'erreur si besoin
+    }
   }
 
   Future<String?> _getUtilisateurEmail() async {
@@ -84,8 +94,8 @@ Future<void> _chargerMatieresEtApprenants() async {
     final filiereId = filiereObj['id'] as int;
 
     _matieres = await MatiereService().getMatieres(filiereId);
+    print("Matières chargées pour filière $filiereId : $_matieres");
     _apprenants = await ApprenantService().getApprenantsParFiliere(filiereId);
-
 
     setState(() {
       _matiereSelectionnee = _matieres.isNotEmpty ? _matieres.first : null;
@@ -105,11 +115,11 @@ Future<void> _chargerMatieresEtApprenants() async {
     if (apprenantObj['id'] == null) return;
 
     final noteData = {
-      'valeur': double.tryParse(_noteController.text.trim()) ?? 0.0,
+      'notes': double.tryParse(_noteController.text.trim()) ?? 0.0,
       'apprenant': {'id': apprenantObj['id']},
       'matiere': {'id': _matiereSelectionnee!.id},
-      'type_eval': _typeEvalSelectionne,
-      'date_eval': _dateEvaluation!.toIso8601String(),
+      'typeEval': _typeEvalSelectionne,
+      'dateEval': _dateEvaluation!.toIso8601String(),
     };
 
     await NoteService().ajouterNote(noteData);
@@ -117,6 +127,8 @@ Future<void> _chargerMatieresEtApprenants() async {
     setState(() {
       _dateEvaluation = null;
     });
+    await _chargerNotes();
+    setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note ajoutée avec succès')));
   }
 
@@ -132,6 +144,21 @@ Future<void> _chargerMatieresEtApprenants() async {
         _dateEvaluation = picked;
       });
     }
+  }
+
+  int? _noteEnEditionId;
+
+  Future<void> _modifierNote(int id, Map<String, dynamic> note) async {
+    await NoteService().modifierNote(id, note);
+  await _chargerNotes();
+  setState(() {});
+  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note modifiée avec succès')));
+  }
+
+  Future<void> _supprimerNote(int id) async {
+    await NoteService().supprimerNote(id);
+    await _chargerNotes();
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note supprimée avec succès')));
   }
 
   @override
@@ -218,7 +245,7 @@ Future<void> _chargerMatieresEtApprenants() async {
               Expanded(
                 child: DropdownButtonFormField<String>(
                   value: _typeEvalSelectionne,
-                  decoration: const InputDecoration(labelText: 'Type d\'évaluation', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(labelText: "Type d'évaluation", border: OutlineInputBorder()),
                   items: _typesEvaluation.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                   onChanged: (val) {
                     setState(() {
@@ -243,17 +270,76 @@ Future<void> _chargerMatieresEtApprenants() async {
               Expanded(
                 child: ElevatedButton(
                   onPressed: _selectDateEval,
-                  child: Text(_dateEvaluation == null ? 'Sélectionner la date' : 'Date: ${_dateEvaluation!.toLocal()}'.split(' ')[0]),
+          child: Text(_dateEvaluation == null
+            ? 'Sélectionner la date'
+            : 'Date: ${_dateEvaluation!.toLocal().toString().substring(0, 10)}'),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
                   onPressed: _ajouterNote,
-                  child: const Text('Ajouter la note'),
+                  child: Text(_noteEnEditionId != null ? 'Modifier la note' : 'Ajouter la note'),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 20),
+          const Text('Notes enregistrées', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Expanded(
+            child: _notes.isEmpty
+                ? const Center(child: Text('Aucune note'))
+                : ListView.builder(
+                    itemCount: _notes.length,
+                    itemBuilder: (context, index) {
+                      final note = _notes[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        child: ListTile(
+                          title: Text('Matricule : ${note['apprenant']?['matricule'] ?? ''}'),
+                          subtitle: Text(
+                            'Matière : ${note['matiere']?['nom'] ?? 'N/A'}\n'
+                            'Type : ${note['type_eval'] ?? note['typeEval'] ?? 'N/A'}\n'
+                            'Note : ${note['valeur'] ?? note['notes'] ?? 'N/A'}\n'
+                            'Date : ${(note['date_eval'] ?? note['dateEval']) != null ? (note['date_eval'] ?? note['dateEval']).toString().substring(0, 10) : 'N/A'}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                tooltip: 'Modifier',
+                                onPressed: () {
+                                  setState(() {
+                                    _noteEnEditionId = note['id'];
+                                    _matriculeSelectionne = note['apprenant']?['matricule']?.toString();
+                                    _matiereSelectionnee = _matieres.firstWhere(
+                                      (m) => m.id == note['matiere']?['id'],
+                                      orElse: () => _matieres.first,
+                                    );
+                                    _typeEvalSelectionne = note['type_eval']?.toString();
+                                    _noteController.text = note['valeur']?.toString() ?? '';
+                                    if (note['date_eval'] != null) {
+                                      final date = DateTime.tryParse(note['date_eval']);
+                                      if (date != null) _dateEvaluation = date;
+                                    }
+                                  });
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                tooltip: 'Supprimer',
+                                onPressed: () async {
+                                  await _supprimerNote(note['id']);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

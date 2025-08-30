@@ -32,7 +32,11 @@ class ApprenantService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => Map<String, dynamic>.from(json)).toList();
+        // Filtrer les apprenants sans matricule
+        return data
+            .where((json) => json['matricule'] != null && json['matricule'].toString().isNotEmpty)
+            .map((json) => Map<String, dynamic>.from(json))
+            .toList();
       } else {
         throw Exception('Erreur lors du chargement des apprenants par filière: ${response.statusCode}');
       }

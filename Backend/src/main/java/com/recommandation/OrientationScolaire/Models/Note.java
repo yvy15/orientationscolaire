@@ -1,10 +1,7 @@
 package com.recommandation.OrientationScolaire.Models;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
@@ -13,32 +10,40 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+
 public class Note {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Double notes;
-    private Long idApprenant;
-    private Long idMatiere;
+
+    @ManyToOne
+    @JoinColumn(name = "apprenant_id")
+    private Apprenant apprenant;
+
+    @ManyToOne
+    @JoinColumn(name = "matiere_id")
+    private Matiere matiere;
+
     private String typeEval;
     private LocalDateTime dateEval;
 
     public Note() {}
-    public Note(Double notes, Long idApprenant, Long idMatiere, String typeEval, LocalDateTime dateEval) {
+    public Note(Double notes, Apprenant apprenant, Matiere matiere, String typeEval, LocalDateTime dateEval) {
         this.notes = notes;
-        this.idApprenant = idApprenant;
-        this.idMatiere = idMatiere;
+        this.apprenant = apprenant;
+        this.matiere = matiere;
         this.typeEval = typeEval;
         this.dateEval = dateEval;
     }
     public Long getId() { return id; }
     public Double getNotes() { return notes; }
     public void setNotes(Double notes) { this.notes = notes; }
-    public Long getIdApprenant() { return idApprenant; }
-    public void setIdApprenant(Long idApprenant) { this.idApprenant = idApprenant; }
-    public Long getIdMatiere() { return idMatiere; }
-    public void setIdMatiere(Long idMatiere) { this.idMatiere = idMatiere; }
+    public Apprenant getApprenant() { return apprenant; }
+    public void setApprenant(Apprenant apprenant) { this.apprenant = apprenant; }
+    public Matiere getMatiere() { return matiere; }
+    public void setMatiere(Matiere matiere) { this.matiere = matiere; }
     public String getTypeEval() { return typeEval; }
     public void setTypeEval(String typeEval) { this.typeEval = typeEval; }
     public LocalDateTime getDateEval() { return dateEval; }

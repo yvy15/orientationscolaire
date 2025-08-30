@@ -22,7 +22,7 @@ public class Matiere {
     private String nom;
 
     @ManyToOne
-    @JoinColumn(name = "filiere_id")
+    @JoinColumn(name = "id_filiere")
     private Filiere filiere;
 
     public Matiere() {}

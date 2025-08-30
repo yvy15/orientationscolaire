@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:frontend/services/utilisateur_service.dart';
+import 'package:frontend/models/Utilisateur.dart';
 
 class GestionEtProfilUtilisateurs extends StatefulWidget {
   const GestionEtProfilUtilisateurs({super.key});
@@ -10,6 +14,7 @@ class GestionEtProfilUtilisateurs extends StatefulWidget {
 
 class _GestionEtProfilUtilisateursState
     extends State<GestionEtProfilUtilisateurs> {
+  final UtilisateurService _utilisateurService = UtilisateurService();
   int _indexOnglet = 0;
   int? _utilisateurSelectionne;
   String _recherche = '';
@@ -32,20 +37,34 @@ class _GestionEtProfilUtilisateursState
     2: [],
   };
 
+  Future<void> _chargerUtilisateurs() async {
+    try {
+      final utilisateurs = await _utilisateurService.getAllUtilisateurs();
+      setState(() {
+        for (var user in utilisateurs) {
+          int index = 0;
+          if (user.role == 'Apprenant1') index = 0;
+          else if (user.role == 'Apprenant2') index = 1;
+          else if (user.role == 'Etablissement') index = 2;
+          _utilisateurs[index]!.add({
+            "Nom": user.nom_user,
+            "Email": user.email,
+            "Rôle": user.role,
+            "Date": DateTime.now(),
+            "estComplet": user.estComplet,
+            "id": user.token, // à adapter si tu as l'id
+          });
+        }
+      });
+    } catch (e) {
+      // Gérer l'erreur
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    // Fake data
-    for (int i = 0; i < 3; i++) {
-      _utilisateurs[i] = List.generate(5, (j) {
-        return {
-          "Nom": "${_typesUtilisateurs[i]} $j",
-          "Email": "user$j@${_typesUtilisateurs[i].toLowerCase().split(' ')[0]}.com",
-          "Rôle": _typesUtilisateurs[i],
-          "Date": DateTime.now().subtract(Duration(days: j)),
-        };
-      });
-    }
+    _chargerUtilisateurs();
   }
 
   void _ouvrirFormulaire({Map<String, dynamic>? utilisateur, required bool isEdit}) {
@@ -58,7 +77,6 @@ class _GestionEtProfilUtilisateursState
       _email = '';
       _role = _typesUtilisateurs[_indexOnglet];
     }
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -87,22 +105,22 @@ class _GestionEtProfilUtilisateursState
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Annuler")),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
-                setState(() {
-                  if (isEdit && utilisateur != null) {
-                    utilisateur["Nom"] = _nom;
-                    utilisateur["Email"] = _email;
-                  } else {
-                    _utilisateurs[_indexOnglet]!.add({
-                      "Nom": _nom,
-                      "Email": _email,
-                      "Rôle": _role,
-                      "Date": DateTime.now(),
-                    });
-                  }
-                });
+                if (isEdit && utilisateur != null) {
+                  // Appel modification backend
+                  await _modifierUtilisateur(utilisateur, utilisateur["id"]);
+                } else {
+                  // Appel ajout backend
+                  await _ajouterUtilisateur({
+                    "Nom": _nom,
+                    "Email": _email,
+                    "Rôle": _role,
+                    "estComplet": false,
+                  });
+                }
+                setState(() {});
                 Navigator.of(context).pop();
               }
             },
@@ -111,6 +129,35 @@ class _GestionEtProfilUtilisateursState
         ],
       ),
     );
+  }
+
+  Future<void> _ajouterUtilisateur(Map<String, dynamic> utilisateur) async {
+    final user = Utilisateur(
+      token: '',
+      nom_user: utilisateur['Nom'],
+      email: utilisateur['Email'],
+      role: utilisateur['Rôle'],
+      estComplet: utilisateur['estComplet'] ?? false,
+    );
+    await _utilisateurService.addUtilisateur(user);
+    await _chargerUtilisateurs();
+  }
+
+  Future<void> _modifierUtilisateur(Map<String, dynamic> utilisateur, int id) async {
+    final user = Utilisateur(
+      token: '',
+      nom_user: utilisateur['Nom'],
+      email: utilisateur['Email'],
+      role: utilisateur['Rôle'],
+      estComplet: utilisateur['estComplet'] ?? false,
+    );
+    await _utilisateurService.updateUtilisateur(user, id);
+    await _chargerUtilisateurs();
+  }
+
+  Future<void> _supprimerUtilisateurBackend(int id) async {
+    await _utilisateurService.deleteUtilisateur(id);
+    await _chargerUtilisateurs();
   }
 
   void _supprimerUtilisateur(Map<String, dynamic> utilisateur) {
@@ -122,11 +169,9 @@ class _GestionEtProfilUtilisateursState
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Annuler")),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _utilisateurs[_indexOnglet]!.remove(utilisateur);
-                _utilisateurSelectionne = null;
-              });
+            onPressed: () async {
+              await _supprimerUtilisateurBackend(utilisateur["id"]);
+              setState(() {});
               Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),

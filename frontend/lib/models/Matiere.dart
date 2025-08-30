@@ -1,7 +1,7 @@
 class Matiere {
   final int id;
   final String nom;
-  final int idFiliere;
+  final int? idFiliere;
 
   Matiere({
     required this.id,
@@ -13,7 +13,7 @@ class Matiere {
     return Matiere(
       id: json['id'],
       nom: json['nom'],
-      idFiliere: json['id_filiere'],
+      idFiliere: json['id_filiere'] ?? json['idFiliere'],
     );
   }
 

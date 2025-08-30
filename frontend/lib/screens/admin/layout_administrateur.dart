@@ -32,6 +32,17 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
     MetiersFiliereAdmin(),
   ];
 
+  final Utilisateur utilisateur;
+
+  _LayoutAdministrateurState() : utilisateur = Utilisateur(token: '', nom_user: '', email: '', role: '', estComplet: false);
+
+  @override
+  void initState() {
+    super.initState();
+    // Si tu passes l'utilisateur via le constructeur, récupère-le ici
+    // utilisateur = widget.utilisateur;
+  }
+
   void _onSelectItem(int index) {
     setState(() {
       _selectedIndex = index;
@@ -65,15 +76,15 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
             padding: EdgeInsets.zero,
             children: [
               UserAccountsDrawerHeader(
-                accountName: const Text(
-                  "Administrateur",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                accountName: Text(
+                  utilisateur.nom_user.isNotEmpty ? utilisateur.nom_user : "Administrateur",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                accountEmail: const Text("admin@exemple.com"),
-                currentAccountPicture: CircleAvatar(
+                accountEmail: Text(utilisateur.email.isNotEmpty ? utilisateur.email : "admin@exemple.com"),
+                currentAccountPicture: const CircleAvatar(
                   backgroundImage: AssetImage("assets/img1.jpeg"),
                 ),
-                decoration: BoxDecoration(color: const Color.fromARGB(255, 2, 41, 51)),
+                decoration: const BoxDecoration(color: Color.fromARGB(255, 2, 41, 51)),
               ),
               _buildDrawerItem(
                 icon: Icons.dashboard,
