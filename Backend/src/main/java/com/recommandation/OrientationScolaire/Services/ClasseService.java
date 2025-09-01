@@ -2,6 +2,10 @@ package com.recommandation.OrientationScolaire.Services;
 
 import com.recommandation.OrientationScolaire.Models.Classe;
 import com.recommandation.OrientationScolaire.Repository.ClasseRepository;
+import com.recommandation.OrientationScolaire.Repository.FiliereRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +35,21 @@ public class ClasseService {
         return classeRepository.save(classe);
     }
 
+    @Autowired
+private FiliereRepository FiliereRepository; // ajouter si pas déjà fait
+
+
+    @Transactional
     public void deleteClasse(Integer id) {
-        classeRepository.deleteById(id);
-    }
+    // Vérifier si la classe existe
+    Classe classe = classeRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Classe introuvable avec id: " + id));
+
+    // Supprimer toutes les filières associées
+    FiliereRepository.deleteAllByClasse(classe);
+
+    // Supprimer la classe
+    classeRepository.deleteById(id);
+}
+
 }

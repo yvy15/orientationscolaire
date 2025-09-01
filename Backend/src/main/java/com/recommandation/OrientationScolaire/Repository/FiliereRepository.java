@@ -19,4 +19,6 @@ public interface FiliereRepository extends JpaRepository<Filiere, Integer> {
     @Query("SELECT f.classe.etablissement FROM Filiere f WHERE f.id = :filiereId")
     Etablissement findEtablissementByFiliereId(Integer filiereId);
 
+    void deleteAllByClasse(Classe classe);
+
 }
