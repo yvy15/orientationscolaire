@@ -26,8 +26,16 @@ public class Etablissement {
     @Column(nullable = true, unique = false)
     private String region;
 
+
+    // Liste des apprenants (existante)
      @OneToMany(mappedBy = "etablissement")
      @JsonManagedReference
     private List<Apprenant> apprenants;
+
+
+    // Liste des classes associées à cet établissement
+    @OneToMany(mappedBy = "etablissement", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Classe> classes;
 
 }

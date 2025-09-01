@@ -11,7 +11,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-
 public class Classe {
 
     @Id
@@ -26,19 +25,16 @@ public class Classe {
     @JsonBackReference
     private Etablissement etablissement;
 
+    public Classe() {}
+
     @JsonCreator
-    public Classe(@JsonProperty("id") Integer id, @JsonProperty("classe") String classe, @JsonProperty("etablissement") Etablissement etablissement) {
+    public Classe(
+        @JsonProperty("id") Integer id,
+        @JsonProperty("classe") String classe,
+        @JsonProperty("etablissement") Etablissement etablissement
+    ) {
         this.id = id;
         this.classe = classe;
         this.etablissement = etablissement;
-    }
-
-    public Classe() {
-    }
-
-    // Constructeur avec paramètres (optionnel)
-    public Classe(Integer id, String nom) {
-        this.id = id;
-        this.classe = classe;
     }
 }

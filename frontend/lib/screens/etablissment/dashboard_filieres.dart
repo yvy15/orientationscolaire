@@ -36,6 +36,7 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
   }
 
   Future<void> _chargerDonnees() async {
+      print('Chargement des filières...');
     try {
       final service = FiliereService();
       final userEmail = await getUtilisateurEmail();
@@ -69,6 +70,7 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
   }
 
   Future<void> _ajouterOuModifier() async {
+    print('Début ajout filière');
     final filieresTexte = _filieresController.text.trim();
     if (_classeSelectionnee == null || filieresTexte.isEmpty) return;
 
@@ -132,6 +134,7 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
   }
 
   Future<void> _supprimerFiliere(String classe, String filiere) async {
+    print('Suppression de la filière ');
     final service = FiliereService();
     final filiereObj = _donnees[classe]
   ?.firstWhere((f) => f['filiere'].toString() == filiere, orElse: () => {});

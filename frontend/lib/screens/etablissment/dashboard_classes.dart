@@ -34,6 +34,7 @@ class _DashboardClassesState extends State<DashboardClasses> {
 }
 
  Future<void> _chargerClasses() async {
+  print('Chargement des classes...');
   final userEmail = await getUtilisateurEmail();
   print("User email: $userEmail"); // Log de l'email de l'utilisateur
 
@@ -59,6 +60,7 @@ class _DashboardClassesState extends State<DashboardClasses> {
  
 }
  Future<void> _ajouterOuModifier() async {
+   print('Début ajout classe');
   final classeTexte = _classeController.text.trim();
   if (classeTexte.isEmpty) return;
 
@@ -95,6 +97,7 @@ class _DashboardClassesState extends State<DashboardClasses> {
   }
 
   void _supprimerClasse(int id) async {
+     print('Suppression de la classe id=$id');
     await ClasseService().supprimerClasse(id);
     _classeController.clear();
     await _chargerClasses(); // Rechargez les classes après suppression
