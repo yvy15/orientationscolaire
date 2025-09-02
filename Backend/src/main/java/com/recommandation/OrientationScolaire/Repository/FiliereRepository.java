@@ -20,5 +20,6 @@ public interface FiliereRepository extends JpaRepository<Filiere, Integer> {
     Etablissement findEtablissementByFiliereId(Integer filiereId);
 
     void deleteAllByClasse(Classe classe);
+    List<Filiere> findByClasse_Etablissement_Id(int etablissementId);
 
 }

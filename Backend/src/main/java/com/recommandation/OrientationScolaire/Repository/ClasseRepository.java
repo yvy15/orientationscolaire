@@ -19,5 +19,6 @@ public interface ClasseRepository extends JpaRepository<Classe, Integer> {
 
     @Query("SELECT f.classe FROM Filiere f WHERE f.id = :filiereId")
     Classe findClasseByFiliereId(@Param("filiereId") Integer filiereId);
+    List<Classe> findByEtablissement_Id(int etablissementId);
 
 }

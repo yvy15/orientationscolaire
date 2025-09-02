@@ -6,6 +6,7 @@ import 'dashboard_home.dart';
 import 'dashboard_filieres.dart';
 import 'ajouter_apprenant.dart';
 import 'ajouter_note.dart';
+import 'dashboardStatistique.dart';
 
 class DashboardLayout extends StatefulWidget {
   final Utilisateur utilisateur;
@@ -29,9 +30,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       AjouterNoteScreen(),
      // GererApprenant(),
       DashboardFilieres(),
-      const Center(
-          child:
-              Text('Statistiques (à venir)', style: TextStyle(fontSize: 20))),
+      DashboardStatistique(),
       DashboardClasses(),
     ];
 

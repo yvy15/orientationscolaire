@@ -25,6 +25,8 @@ class Utilisateur{
         : json['estComplet']?.toString().toLowerCase() == 'true', // Gérer les valeurs nulles
   );
 }
+
+  get id_etablissement => null;
   
 Map<String, dynamic> toJson() {
   return {

@@ -21,6 +21,7 @@ dependencies:
   google_fonts: ^6.2.1
   provider: ^6.1.5
   fl_chart: ^1.0.0
+  syncfusion_flutter_charts: ^30.2.7
   file_picker: ^8.0.0
 
   #flutter_icons:
@@ -34,7 +35,7 @@ dependencies:
   flutter_screenutil: ^5.0.0+2
   smooth_page_indicator: ^1.2.1
   colorize_text_avatar: ^1.0.2
-   
+
 
 dev_dependencies:
   flutter_test:

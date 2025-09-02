@@ -22,4 +22,7 @@ public interface Test_psychotechniqueRepository extends JpaRepository<Test_psych
 
     Optional<Test_psychotechnique> findByResultat(String resultat);
 
+    int countByApprenant_Etablissement_Id(Integer etablissementId);
+
+
 }

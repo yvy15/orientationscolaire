@@ -25,4 +25,16 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
 
 
     Optional<Apprenant> findByUtilisateur(Utilisateur utilisateur);
+
+
+    Integer countByEtablissementId(int etablissementId);
+
+
+    Integer countByFiliere_Id(Integer id);
+
+
+    int countByEtablissementId(Integer etablissementId);
+
+    int countByFiliere_Classe_Id(Integer classeId);
+
 }
