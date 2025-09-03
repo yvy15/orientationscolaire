@@ -39,6 +39,9 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
 
     boolean existsByMatricule(String matricule);
 
+
+    Optional<Apprenant> findByUtilisateurId(Long utilisateurId);
+
     
 
 }

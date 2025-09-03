@@ -35,7 +35,7 @@ public class TestPsychotechniqueService {
         // Création du test
         Test_psychotechnique test = new Test_psychotechnique();
         test.setApprenant(apprenant);
-        test.setResultat(resultat);
+        test.setResultatsJson(resultat);
         testRepo.save(test);
 
         // Génération recommandation simple
@@ -49,7 +49,7 @@ public class TestPsychotechniqueService {
         return new RecommandationResponse(
                 recommandation.getFiliere_suggerer(),
                 recommandation.getMetier_suggerer(),
-                test.getResultat()
+                test.getResultatsJson()
         );
     }
 }

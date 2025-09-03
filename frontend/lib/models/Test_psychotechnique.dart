@@ -1,56 +1,35 @@
-class Test_psychotechnique{
-  final String apprenant;
-  final String date_passage;
-  final String resultat;
-  final String token;
+import 'package:frontend/models/Utilisateur.dart';
 
- Test_psychotechnique({
-    required this.token,
-    required this.apprenant,
-    required this.date_passage,
-    required this.resultat,
+class TestPsychotechnique {
+  final String matricule;
+  final String secteur;
+  final List<String> metiers;
+  final String questionsJson;
+  final String reponsesJson;
+  final String resultatsJson;
+  final Utilisateur utilisateur; 
 
+  TestPsychotechnique({
+    required this.matricule,
+    required this.secteur,
+    required this.metiers,
+    required this.questionsJson,
+    required this.reponsesJson,
+    required this.resultatsJson,
+    required this.utilisateur,
   });
-
-  factory Test_psychotechnique.fromJson(Map<String, dynamic> json) {
-    return Test_psychotechnique(
-      token: json['token'],
-      apprenant: json['apprenant'],
-      date_passage: json['date_passage'],
-      resultat: json['resultat'],
-     
-    );
-  }
 
   Map<String, dynamic> toJson() {
     return {
-      token: token,
-      apprenant: apprenant,
-      date_passage: date_passage,
-      resultat: resultat,
-      
+      "matricule": matricule,
+      "secteur": secteur,
+      "metiers": metiers,
+      "questionsJson": questionsJson,
+      "reponsesJson": reponsesJson,
+      "resultatsJson": resultatsJson,
+      "utilisateur": utilisateur.toJson(),
     };
   }
 
+  static fromJson(e) {}
 }
-
-class Question {
-  final int id;
-  final String texte;
-  final List<String> options;
-
-  Question({
-    required this.id,
-    required this.texte,
-    required this.options,
-  });
-
-  factory Question.fromJson(Map<String, dynamic> json) {
-    return Question(
-      id: json['id'],
-      texte: json['texte'],
-      options: List<String>.from(json['options']),
-    );
-  }
-}
-

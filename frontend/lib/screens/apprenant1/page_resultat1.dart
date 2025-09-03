@@ -12,16 +12,34 @@ class ResultatsDialogContent1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scores = Map<String, dynamic>.from(resultats1['scores'] ?? {});
-    final recommandations = List<String>.from(resultats1['recommandations'] ?? []);
-    final filieres = List<String>.from(resultats1['filieres'] ?? []);
-    final alternatives = List<String>.from(resultats1['alternatives'] ?? []);
-    final conseils = resultats1['conseils'];
+    // Parsing sécurisé
+    final scores = <String, dynamic>{};
+    if (resultats1['scores'] != null) {
+      try {
+        scores.addAll(Map<String, dynamic>.from(resultats1['scores']));
+      } catch (_) {}
+    }
+
+    final recommandations = resultats1['recommandations'] is List
+        ? List<String>.from(resultats1['recommandations'])
+        : [];
+
+    final filieres = resultats1['filieres'] is List
+        ? List<String>.from(resultats1['filieres'])
+        : [];
+
+    final alternatives = resultats1['alternatives'] is List
+        ? List<String>.from(resultats1['alternatives'])
+        : [];
+
+    final conseils = resultats1['conseils']?.toString();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("🔢 Scores par sous-métier :", style: TextStyle(fontWeight: FontWeight.bold)),
+        if (sousMetiersChoisis1.isEmpty)
+          const Text("Aucun score disponible."),
         ...sousMetiersChoisis1.map((metier) {
           final rawScore = scores[metier] ?? '0';
           final score = int.tryParse(rawScore.toString().split('%').first) ?? 0;
@@ -41,20 +59,28 @@ class ResultatsDialogContent1 extends StatelessWidget {
               ],
             ),
           );
-        }),
+        }).toList(),
+
         const SizedBox(height: 12),
-        const Text("🎯 Carrières recommandées :", style: TextStyle(fontWeight: FontWeight.bold)),
-        ...recommandations.map((r) => Text("✅ $r")),
-        const SizedBox(height: 12),
-        const Text("📚 Filières suggérées :", style: TextStyle(fontWeight: FontWeight.bold)),
-        ...filieres.map((f) => Text("📘 $f")),
-        if (alternatives.isNotEmpty) ...[
+        if (recommandations.isNotEmpty) ...[
+          const Text("🎯 Carrières recommandées :", style: TextStyle(fontWeight: FontWeight.bold)),
+          ...recommandations.map((r) => Text("✅ $r")),
           const SizedBox(height: 12),
+        ],
+
+        if (filieres.isNotEmpty) ...[
+          const Text("📚 Filières suggérées :", style: TextStyle(fontWeight: FontWeight.bold)),
+          ...filieres.map((f) => Text("📘 $f")),
+          const SizedBox(height: 12),
+        ],
+
+        if (alternatives.isNotEmpty) ...[
           const Text("🛑 Alternatives proposées :", style: TextStyle(fontWeight: FontWeight.bold)),
           ...alternatives.map((a) => Text("🔄 $a")),
-        ],
-        if (conseils != null) ...[
           const SizedBox(height: 12),
+        ],
+
+        if (conseils != null && conseils.isNotEmpty) ...[
           const Text("💡 Conseils d'amélioration :", style: TextStyle(fontWeight: FontWeight.bold)),
           Text(conseils),
         ],

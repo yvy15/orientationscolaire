@@ -2,16 +2,21 @@ package com.recommandation.OrientationScolaire.Controllers;
 
 import com.recommandation.OrientationScolaire.Models.Apprenant;
 import com.recommandation.OrientationScolaire.Models.Etablissement;
+import com.recommandation.OrientationScolaire.Models.Test_psychotechnique;
 import com.recommandation.OrientationScolaire.Models.Utilisateur;
 import com.recommandation.OrientationScolaire.Packages.TestRequest;
 import com.recommandation.OrientationScolaire.Repository.ApprenantRepository;
 import com.recommandation.OrientationScolaire.Repository.UtilisateurRepository;
 import com.recommandation.OrientationScolaire.Repository.EtablissementRepository;
+import com.recommandation.OrientationScolaire.Repository.Test_psychotechniqueRepository;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +30,8 @@ public class TestPsychotechniqueController {
 
     private final UtilisateurRepository utilisateurRepository;
     private final ApprenantRepository apprenantRepository;
-    private final EtablissementRepository etablissementRepository; // ✅ Injection du repository
+    private final EtablissementRepository etablissementRepository;
+    private final Test_psychotechniqueRepository testPsychotechniqueRepository; // ✅ Injection du repository
 
     @PostMapping("/soumettre")
     public ResponseEntity<String> soumettreTest(@RequestBody TestRequest testRequest) {
@@ -140,5 +146,80 @@ public class TestPsychotechniqueController {
 
         return ResponseEntity.ok("Profil enregistré avec succès");
     }
+
+
+/**
+     * Enregistre un test psychotechnique complet avec questions, réponses et résultats.
+     */
+@PostMapping("/enregistrerTest")
+public ResponseEntity<String> enregistrerTest(@RequestBody Map<String, Object> data) {
+    try {
+
+           System.out.println("ici");
+
+        // 🔎 Récupérer l'objet utilisateur du JSON
+        Map<String, Object> utilisateurMap = (Map<String, Object>) data.get("utilisateur");
+
+        if (utilisateurMap == null || utilisateurMap.get("email") == null) {
+            return ResponseEntity.badRequest().body("❌ Email utilisateur non fourni dans la requête");
+        }
+
+        String email = utilisateurMap.get("email").toString();
+        System.out.println("Email utilisateur reçu : " + email);
+
+        // 🔎 Rechercher l’utilisateur par email
+        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
+        if (utilisateurOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("❌ Aucun utilisateur trouvé avec l’email " + email);
+        }
+
+        Utilisateur utilisateur = utilisateurOpt.get();
+
+        // 🔎 Rechercher l’apprenant lié à cet utilisateur
+        Optional<Apprenant> apprenantOpt = apprenantRepository.findByUtilisateurId(utilisateur.getId());
+        if (apprenantOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("❌ Aucun apprenant lié à l’utilisateur avec l’email " + email);
+        }
+
+        Apprenant apprenant = apprenantOpt.get();
+        System.out.println("Apprenant trouvé : matricule = " + apprenant.getMatricule());
+
+        // 📝 Créer l'objet Test_psychotechnique
+        Test_psychotechnique test = new Test_psychotechnique();
+        test.setApprenant(apprenant);
+        test.setSecteur((String) data.get("secteur"));
+
+        // ✅ Conversion sécurisée des métiers
+        Object metiersObj = data.get("metiers");
+        List<String> metiers = new ArrayList<>();
+        if (metiersObj instanceof List<?>) {
+            for (Object obj : (List<?>) metiersObj) {
+                metiers.add(String.valueOf(obj));
+            }
+        }
+        test.setMetiers(metiers);
+
+        // ✅ Stocker les JSON
+        test.setQuestionsJson((String) data.get("questionsJson"));
+        test.setReponsesJson((String) data.get("reponsesJson"));
+        test.setResultatsJson((String) data.get("resultatsJson"));
+
+        // ✅ Date de passage
+        test.setDatePassage(LocalDateTime.now());
+
+        // ✅ Enregistrer en BDD
+        testPsychotechniqueRepository.save(test);
+
+        return ResponseEntity.ok("✅ Test enregistré avec succès pour l’apprenant " + apprenant.getMatricule());
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("❌ Erreur lors de l'enregistrement du test : " + e.getMessage());
+    }
+}
+
+
+
 }
  

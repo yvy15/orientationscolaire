@@ -4,6 +4,7 @@ import 'package:frontend/models/Test_psychotechnique.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/apprenant1/dashboard_layout.dart';
 import 'package:frontend/screens/apprenant1/page_resultat1.dart';
+import 'package:frontend/services/test_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,15 +15,13 @@ class TestPsychotechniqueScreen1 extends StatefulWidget {
   final String nomEtablissement;
   final Utilisateur utilisateur;
 
-
   const TestPsychotechniqueScreen1({
     super.key,
     required this.secteur,
     required this.metiers,
     required this.matricule,
     required this.nomEtablissement,
-    required this.utilisateur, 
-
+    required this.utilisateur,
   });
 
   @override
@@ -30,11 +29,11 @@ class TestPsychotechniqueScreen1 extends StatefulWidget {
       _TestPsychotechniqueScreenState1();
 }
 
-class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1> {
+class _TestPsychotechniqueScreenState1
+    extends State<TestPsychotechniqueScreen1> {
   List<Map<String, dynamic>> questions = [];
   Map<int, String> reponsesUtilisateur = {};
   bool isLoading = true;
-  bool showResults = false;
   Map<String, dynamic>? resultats;
 
   @override
@@ -43,18 +42,18 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
     genererQuestions();
   }
 
-   Future<Utilisateur> getUtilisateurDepuisPrefs() async {
-  final prefs = await SharedPreferences.getInstance();
+  Future<Utilisateur> getUtilisateurDepuisPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
 
-  return Utilisateur(
-    nom_user: prefs.getString('nom_user')!,
-    email: prefs.getString('email')!,
-    role: prefs.getString('role')!,
-    token: prefs.getString('token')!,
-    estComplet: prefs.getBool('estComplet')!,
-    id: prefs.getInt('id') ?? 0,
-  );
-}
+    return Utilisateur(
+      nom_user: prefs.getString('nom_user')!,
+      email: prefs.getString('email')!,
+      role: prefs.getString('role')!,
+      token: prefs.getString('token')!,
+      estComplet: prefs.getBool('estComplet')!,
+      id: prefs.getInt('id') ?? 0,
+    );
+  }
 
   Future<void> genererQuestions() async {
     setState(() {
@@ -64,6 +63,7 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('email') ?? '';
     final estComplet = prefs.getBool('estComplet');
+
     final body = {
       "email": email,
       "secteur": widget.secteur,
@@ -73,31 +73,8 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
     };
 
     try {
-      print('statut du profil $estComplet');
       if (estComplet == true) {
-        final mistralPrompt = _buildPrompt(widget.secteur, widget.metiers);
-        final mistralResponse = await http.post(
-          Uri.parse("https://api.mistral.ai/v1/chat/completions"),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer oPrGB2UPZBr4uWldQQ5uuP2Yx5d8iizw'
-          },
-          body: jsonEncode({
-            "model": "mistral-tiny",
-            "messages": [
-              {"role": "user", "content": mistralPrompt}
-            ],
-          }),
-        );
-
-        final mistralData = jsonDecode(mistralResponse.body);
-        final content = mistralData['choices'][0]['message']['content'];
-        final quizData = jsonDecode(content);
-
-        setState(() {
-          questions = List<Map<String, dynamic>>.from(quizData['quiz']);
-          isLoading = false;
-        });
+        await _genererQuestionsDepuisMistral();
       } else {
         final backendResponse = await http.post(
           Uri.parse("http://localhost:8080/api/test/soumettre"),
@@ -106,31 +83,9 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
         );
 
         if (backendResponse.statusCode == 200) {
-          final mistralPrompt = _buildPrompt(widget.secteur, widget.metiers);
-          final mistralResponse = await http.post(
-            Uri.parse("https://api.mistral.ai/v1/chat/completions"),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer oPrGB2UPZBr4uWldQQ5uuP2Yx5d8iizw'
-            },
-            body: jsonEncode({
-              "model": "mistral-tiny",
-              "messages": [
-                {"role": "user", "content": mistralPrompt}
-              ],
-            }),
-          );
-
-          final mistralData = jsonDecode(mistralResponse.body);
-          final content = mistralData['choices'][0]['message']['content'];
-          final quizData = jsonDecode(content);
-
-          setState(() {
-            questions = List<Map<String, dynamic>>.from(quizData['quiz']);
-            isLoading = false;
-          });
+          await _genererQuestionsDepuisMistral();
         } else {
-          print("Erreur backend : '${backendResponse.statusCode}");
+          print("Erreur backend : ${backendResponse.statusCode}");
         }
       }
     } catch (e) {
@@ -138,11 +93,44 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
     }
   }
 
+  Future<void> _genererQuestionsDepuisMistral() async {
+    final mistralPrompt = _buildPrompt(widget.secteur, widget.metiers);
+    final mistralResponse = await http.post(
+      Uri.parse("https://api.mistral.ai/v1/chat/completions"),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer oPrGB2UPZBr4uWldQQ5uuP2Yx5d8iizw'
+      },
+      body: jsonEncode({
+        "model": "mistral-tiny",
+        "messages": [
+          {"role": "user", "content": mistralPrompt}
+        ],
+      }),
+    );
+
+    final mistralData = jsonDecode(mistralResponse.body);
+    final content = mistralData['choices'][0]['message']['content'];
+
+    // Nettoyage JSON si nécessaire
+    String cleanContent = content.trim();
+    int startIndex = cleanContent.indexOf('{');
+    if (startIndex != -1) cleanContent = cleanContent.substring(startIndex);
+    cleanContent = cleanContent.replaceAll('```json', '').replaceAll('```', '');
+
+    final quizData = jsonDecode(cleanContent);
+
+    setState(() {
+      questions = List<Map<String, dynamic>>.from(quizData['quiz']);
+      isLoading = false;
+    });
+  }
+
   String _buildPrompt(String? secteur, List<String> metiers) {
     String metiersList = metiers.where((m) => m.isNotEmpty).join(', ');
 
     return """Tu es un expert en orientation scolaire. Génère un test psychotechnique de 10 questions adaptées aux sous metiers $metiersList comme Réponse A, Réponse B, Réponse C. 
-Chaque réponse doit inclure son texte en français, question doit être rédigée en **français**, avec trois réponses concrètes désignées 
+Chaque réponse doit inclure son texte en français, question doit être rédigée en français, avec trois réponses concrètes désignées. 
 Format attendu :
 {
   "quiz": [
@@ -153,25 +141,26 @@ Format attendu :
         "B": { "text": "Texte en français ici" },
         "C": { "text": "Texte en français ici" }
       }
-    },
-    ...
+    }
   ]
 }
 Ne retourne que du JSON valide et uniquement en français.
 """;
   }
 
-  Future<Map<String, dynamic>> analyserResultats({
+  Future<Map<String, dynamic>> analyserEtEnregistrerResultats({
+    required String matricule,
     required String secteur,
+    required List<String> metiers,
     required List<Map<String, dynamic>> questions,
     required Map<int, String> userAnswers,
+    required Utilisateur utilisateur,
   }) async {
     final Map<String, String> reponses = {};
     for (int i = 0; i < questions.length; i++) {
       final question = questions[i]['question'];
       final selectedOption = userAnswers[i];
       final optionText = questions[i]['options'][selectedOption]?['text'];
-
       if (question != null && optionText != null) {
         reponses[question] = optionText;
       }
@@ -179,43 +168,8 @@ Ne retourne que du JSON valide et uniquement en français.
 
     final mistralPrompt = """
 Voici les réponses d’un utilisateur à un test psychotechnique dans le secteur $secteur :
-
 ${jsonEncode(reponses)}
-
-Analyse et retourne un graphique JSON des scores par métiers sélectionnés au départ, affiche également des scores en pourcentages en fonction des réponses et métiers,
-propose 3 carrières adaptées au secteur $secteur, 2 filières adaptées aux métiers, et si son score est en dessous de la moyenne
-il faut proposer 3 alternatives de métiers qu’il peut exercer ou étudier en fonction de son secteur d’activité sélectionné.
-
-Format attendu :
-
-{
-  "scores": {
-    "metier1": "80-100% → Très adapté",
-    "metier2": "60-79% → Adapté",
-    "metier3": "40-59% → Peu adapté",
-    "metier4": "0-39% → Non adapté"
-  },
-  "graph": {
-    "metier1": "...",
-    "metier2": "...",
-    "metier3": "..."
-  },
-  "recommandations": [
-    "...",
-    "...",
-    "..."
-  ],
-  "filieres": [
-    "...",
-    "..."
-  ],
-  "alternatives": [
-    "...",
-    "...",
-    "..."
-  ]
-}
-Ne retourne que le format valide et uniquement en francais et parsable 
+Analyse et retourne un JSON des scores par métiers, 3 carrières adaptées, 2 filières, 3 alternatives si score faible.
 """;
 
     final mistralResponse = await http.post(
@@ -232,18 +186,34 @@ Ne retourne que le format valide et uniquement en francais et parsable
       }),
     );
 
-    if (mistralResponse.statusCode == 200) {
-      final content = jsonDecode(mistralResponse.body);
-      final message = content['choices'][0]['message']['content'];
-
-      try {
-        return jsonDecode(message);
-      } catch (e) {
-        throw Exception("Réponse Mistral non parsable : $message");
-      }
-    } else {
+    if (mistralResponse.statusCode != 200) {
       throw Exception("Erreur Mistral : ${mistralResponse.statusCode}");
     }
+
+    final content = jsonDecode(mistralResponse.body);
+    final message = content['choices'][0]['message']['content'];
+
+    // Parsing sécurisé
+    late Map<String, dynamic> resultats;
+    try {
+      resultats = jsonDecode(message);
+    } catch (e) {
+      throw Exception("Réponse Mistral non parsable : $message");
+    }
+
+    final test = TestPsychotechnique(
+      matricule: matricule,
+      secteur: secteur,
+      metiers: metiers,
+      questionsJson: jsonEncode(questions),
+      reponsesJson: jsonEncode(reponses),
+      resultatsJson: jsonEncode(resultats),
+      utilisateur: utilisateur,
+    );
+
+    await TestService.enregistrerTest(test);
+
+    return resultats;
   }
 
   @override
@@ -263,14 +233,12 @@ Ne retourne que le format valide et uniquement en francais et parsable
               ),
               child: Align(
                 alignment: Alignment.bottomLeft,
-                
               ),
             ),
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Accueil'),
               onTap: () {
-               
                 Navigator.pop(context);
               },
             ),
@@ -278,7 +246,6 @@ Ne retourne que le format valide et uniquement en francais et parsable
               leading: const Icon(Icons.psychology),
               title: const Text('Test Psychotechnique'),
               onTap: () {
-              
                 Navigator.pop(context);
               },
             ),
@@ -286,7 +253,6 @@ Ne retourne que le format valide et uniquement en francais et parsable
               leading: const Icon(Icons.edit),
               title: const Text('Modifier son secteur'),
               onTap: () {
-               
                 Navigator.pop(context);
               },
             ),
@@ -294,14 +260,13 @@ Ne retourne que le format valide et uniquement en francais et parsable
               leading: const Icon(Icons.history),
               title: const Text('Historique des tests'),
               onTap: () {
-              
                 Navigator.pop(context);
               },
             ),
           ],
         ),
       ),
-       appBar: AppBar(
+      appBar: AppBar(
         title: const Text("Test psychotechnique"),
         backgroundColor: Colors.teal,
         actions: [
@@ -343,10 +308,13 @@ Ne retourne que le format valide et uniquement en francais et parsable
               onPressed: reponsesUtilisateur.length == questions.length
                   ? () async {
                       try {
-                        final result = await analyserResultats(
+                        final result = await analyserEtEnregistrerResultats(
+                          matricule: widget.matricule,
                           secteur: widget.secteur ?? '',
+                          metiers: widget.metiers,
                           questions: questions,
                           userAnswers: reponsesUtilisateur,
+                          utilisateur: widget.utilisateur,
                         );
 
                         setState(() {
@@ -369,7 +337,7 @@ Ne retourne que le format valide et uniquement en francais et parsable
                                 TextButton(
                                   onPressed: () async {
                                     Navigator.pop(context);
-                                    final utilisateur = 
+                                    final utilisateur =
                                         await getUtilisateurDepuisPrefs();
 
                                     Navigator.pushReplacement(
@@ -380,8 +348,9 @@ Ne retourne que le format valide et uniquement en francais et parsable
                                                 utilisateur: utilisateur),
                                       ),
                                     );
-                                                                    },
-                                  child: const Text("Retour au tableau de bord"),
+                                  },
+                                  child: const Text(
+                                      "Retour au tableau de bord"),
                                 ),
                               ],
                             );
@@ -390,7 +359,9 @@ Ne retourne que le format valide et uniquement en francais et parsable
                       } catch (e) {
                         print("❌ Erreur : $e");
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Erreur lors de l’analyse : $e")),
+                          SnackBar(
+                              content: Text(
+                                  "Erreur lors de l’analyse : $e")),
                         );
                       }
                     }
@@ -408,14 +379,15 @@ Ne retourne que le format valide et uniquement en francais et parsable
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("${index + 1}. ${question['question']}",
-                      style:
-                          const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   ...["A", "B", "C"].map((option) {
                     return RadioListTile(
                       value: option,
                       groupValue: reponsesUtilisateur[index],
-                      title: Text("$option) ${question['options'][option]['text']}"),
+                      title: Text(
+                          "$option) ${question['options'][option]['text']}"),
                       onChanged: (val) {
                         setState(() {
                           reponsesUtilisateur[index] = val!;
@@ -431,6 +403,4 @@ Ne retourne que le format valide et uniquement en francais et parsable
       ),
     );
   }
-
- 
 }
