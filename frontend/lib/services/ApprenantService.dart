@@ -97,4 +97,41 @@ class ApprenantService {
       throw Exception('Erreur lors de la suppression de l\'apprenant: $e');
     }
   }
+
+
+   // Vérification matricule
+  static Future<bool> verifierMatricule(String matricule) async {
+    final response = await http.get(Uri.parse('http://localhost:8080/api/apprenants/verifier/$matricule'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as bool;
+    } else {
+      throw Exception('Erreur vérification matricule');
+    }
+  }
+
+  // Mise à jour du profil existant
+  static Future<void> mettreAJourProfil({
+    required String matricule,
+    required String secteur,
+    required List<String> metiers,
+    required String etablissement,
+    required int id,
+  }) async {
+    
+    final uri = Uri.parse('http://localhost:8080/api/apprenants/mettreAJourProfil').replace(
+  queryParameters: {
+    'matricule': matricule,
+    'secteur': secteur,
+    'etablissement': etablissement,
+    'id': id.toString(),
+    'metiers': metiers.join(","), // transforme la liste en "m1,m2,m3"
+  },
+);
+
+
+    final response = await http.put(uri);
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la mise à jour du profil');
+    }
+  }
 }

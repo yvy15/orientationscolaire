@@ -34,7 +34,7 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
 
   final Utilisateur utilisateur;
 
-  _LayoutAdministrateurState() : utilisateur = Utilisateur(token: '', nom_user: '', email: '', role: '', estComplet: false);
+  _LayoutAdministrateurState() : utilisateur = Utilisateur(token: '', nom_user: '', email: '', role: '', estComplet: false, id: 0);
 
   @override
   void initState() {

@@ -30,6 +30,8 @@ public class Utilisateur {
     @Column(name = "est_complet")
     private Boolean estComplet;
 
+    @Column(unique = true)
+     private String matricule;
 
     public boolean isEstComplet() {
         return estComplet != null && estComplet;

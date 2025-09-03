@@ -57,4 +57,6 @@ public class Apprenant {
     @Column(nullable = true)
     private LocalDate dateInscription;
 
+    
+
 }

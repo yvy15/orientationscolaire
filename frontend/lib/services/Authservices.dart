@@ -29,8 +29,9 @@ class AuthService {
         final email = data['email'];
         final role = data['role'];
         final estComplet=data['estComplet'];
+        final id = data['id'] ?? 0; 
 
-        if (token == null || nomUser == null || email == null || role == null || estComplet == null ) {
+        if (token == null || nomUser == null || email == null || role == null || estComplet == null || id == 0) {
           throw Exception('Réponse invalide du serveur');
         }
 
@@ -39,7 +40,8 @@ class AuthService {
           nom_user: nomUser,
           email: email,
           role: role,
-          estComplet: estComplet
+          estComplet: estComplet,
+          id: id,
         );
       } else {
         String errorMessage = 'Erreur inconnue';

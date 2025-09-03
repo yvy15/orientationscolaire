@@ -44,12 +44,14 @@ public class AuthService {
         }
 
         String token = jwtUtil.generateToken(utilisateur);
+        System.out.println("utiiutilisateur trouver "+utilisateur.getId().intValue());
         return new AuthResponse(
                 token,
                 utilisateur.getNom_user(),
                 utilisateur.getEmail(),
                 utilisateur.getRole().toString(),
-                utilisateur.isEstComplet()
+                utilisateur.isEstComplet(),
+                utilisateur.getId().intValue()
         );
 
 

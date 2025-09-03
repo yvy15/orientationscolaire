@@ -46,6 +46,7 @@ class _TestPsychotechniqueScreenState extends State<TestPsychotechniqueScreen> {
     role: prefs.getString('role')!,
     token: prefs.getString('token')!,
     estComplet: prefs.getBool('estComplet')!,
+    id: prefs.getInt('id') ?? 0,
   );
 }
 

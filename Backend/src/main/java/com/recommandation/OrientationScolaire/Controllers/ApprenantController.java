@@ -57,4 +57,30 @@ public class ApprenantController {
         apprenantService.deleteApprenant(id);
         return ResponseEntity.noContent().build();
     }
+
+     @GetMapping("/verifier/{matricule}")
+    public boolean verifierMatricule(@PathVariable String matricule) {
+        return apprenantService.verifierMatricule(matricule);
+    }
+
+
+    // Mettre à jour le profil
+@PutMapping("/mettreAJourProfil")
+public ResponseEntity<?> mettreAJourProfil(
+        @RequestParam String matricule,
+        @RequestParam String secteur,
+        @RequestParam String etablissement,
+        @RequestParam Long id,
+        @RequestParam(required = false) String metiers // optionnel
+) {
+    try {
+        apprenantService.mettreAJourProfil(matricule, secteur, etablissement, id);
+        return ResponseEntity.ok("Profil mis à jour avec succès !");
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Erreur lors de la mise à jour du profil : " + e.getMessage());
+    }
+}
+
+
 }

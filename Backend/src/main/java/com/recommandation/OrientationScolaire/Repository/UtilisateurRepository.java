@@ -24,4 +24,6 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     Optional<Utilisateur> findByMot_passe(@Param("mot_passe") String mot_passe);
 
     List<Utilisateur> findByRole(Utilisateur.Role role);
+
+     Optional<Utilisateur> findByMatricule(String matricule);
 }

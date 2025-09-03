@@ -37,4 +37,8 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
 
     int countByFiliere_Classe_Id(Integer classeId);
 
+    boolean existsByMatricule(String matricule);
+
+    
+
 }

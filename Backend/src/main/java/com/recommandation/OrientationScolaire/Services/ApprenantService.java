@@ -2,6 +2,7 @@ package com.recommandation.OrientationScolaire.Services;
 
 import com.recommandation.OrientationScolaire.Models.Apprenant;
 import com.recommandation.OrientationScolaire.Models.Classe;
+import com.recommandation.OrientationScolaire.Models.Utilisateur;
 import com.recommandation.OrientationScolaire.Models.Etablissement;
 import com.recommandation.OrientationScolaire.Models.Filiere;
 import com.recommandation.OrientationScolaire.Packages.ApprenantRequest;
@@ -9,8 +10,11 @@ import com.recommandation.OrientationScolaire.Repository.ApprenantRepository;
 import com.recommandation.OrientationScolaire.Repository.ClasseRepository;
 import com.recommandation.OrientationScolaire.Repository.EtablissementRepository;
 import com.recommandation.OrientationScolaire.Repository.FiliereRepository;
+import com.recommandation.OrientationScolaire.Repository.UtilisateurRepository;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +37,8 @@ public class ApprenantService {
     @Autowired
     private ClasseRepository classeRepository;
 
-
+    @Autowired
+    private UtilisateurRepository utilisateurRepository;
 
     public List<Apprenant> getAllApprenantsByFiliere(Integer filiereId) {
         return apprenantRepository.findByFiliereId(filiereId);
@@ -43,19 +48,13 @@ public class ApprenantService {
         return apprenantRepository.findByEtablissementId(etablissementId);
     }
 
-
     public Apprenant addApprenant(ApprenantRequest apprenant1) {
-        // Récupération de la Filiere via id
-        Apprenant apprenant= new Apprenant();
-        Optional<Filiere> filiereopt= filiereRepository.findById(apprenant1.getFiliereId());
-        Filiere filiere=new Filiere();
-        if(filiereopt.isPresent()){
-            filiere= filiereopt.get();
-        }
+        Apprenant apprenant = new Apprenant();
+        Optional<Filiere> filiereOpt = filiereRepository.findById(apprenant1.getFiliereId());
+        Filiere filiere = filiereOpt.orElse(new Filiere());
 
-        //ici je recupere l'etabliseement a partir de l'id de la filiere
-        Etablissement etablissement= filiereRepository.findEtablissementByFiliereId(apprenant1.getFiliereId());
-        Classe classe= classeRepository.findClasseByFiliereId(apprenant1.getFiliereId());
+        Etablissement etablissement = filiereRepository.findEtablissementByFiliereId(apprenant1.getFiliereId());
+        Classe classe = classeRepository.findClasseByFiliereId(apprenant1.getFiliereId());
 
         apprenant.setNomclasse(classe.getClasse());
         apprenant.setEtablissement(etablissement);
@@ -70,21 +69,18 @@ public class ApprenantService {
         Optional<Apprenant> existing = apprenantRepository.findById(id);
         if (existing.isPresent()) {
             Apprenant a = existing.get();
-            Optional<Filiere> filiereopt= filiereRepository.findById(apprenant.getFiliereId());
-            Filiere filiere=new Filiere();
-            if(filiereopt.isPresent()){
-                filiere= filiereopt.get();
-            }
+            Optional<Filiere> filiereOpt = filiereRepository.findById(apprenant.getFiliereId());
+            Filiere filiere = filiereOpt.orElse(new Filiere());
             a.setFiliere(filiere);
 
-            Etablissement etablissement= filiereRepository.findEtablissementByFiliereId(apprenant.getFiliereId());
-            Classe classe= classeRepository.findClasseByFiliereId(apprenant.getFiliereId());
+            Etablissement etablissement = filiereRepository.findEtablissementByFiliereId(apprenant.getFiliereId());
+            Classe classe = classeRepository.findClasseByFiliereId(apprenant.getFiliereId());
 
             a.setNomclasse(classe.getClasse());
             a.setEtablissement(etablissement);
             a.setMatricule(apprenant.getMatricule());
-
             a.setDateInscription(apprenant.getDateInscription());
+
             return apprenantRepository.save(a);
         }
         return null;
@@ -92,5 +88,32 @@ public class ApprenantService {
 
     public void deleteApprenant(Long id) {
         apprenantRepository.deleteById(id);
+    }
+
+    // Vérifier si le matricule existe
+    public boolean verifierMatricule(String matricule) {
+        return apprenantRepository.findByMatricule(matricule).isPresent();
+    }
+
+    // Mettre à jour le profil d’un apprenant existant
+    public Apprenant mettreAJourProfil(String matricule, String secteur, String etablissement, Long id) throws Exception {
+        Optional<Apprenant> optionalApprenant = apprenantRepository.findByMatricule(matricule);
+        if (optionalApprenant.isEmpty()) {
+            throw new Exception("Apprenant non trouvé avec le matricule : " + matricule);
+            
+        }
+
+        Apprenant apprenant = optionalApprenant.get();
+
+        // Récupérer l'utilisateur associé
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new Exception("Utilisateur non trouvé avec l'id : " + id));
+
+        // Mettre à jour le profil
+        apprenant.setSecteur_activite(secteur);
+        apprenant.setUtilisateur(utilisateur);
+        // Ici tu peux mettre à jour d'autres champs si nécessaire (ex: etablissement, metiers)
+
+        return apprenantRepository.save(apprenant);
     }
 }

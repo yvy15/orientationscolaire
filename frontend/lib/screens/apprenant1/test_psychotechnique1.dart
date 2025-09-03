@@ -14,6 +14,7 @@ class TestPsychotechniqueScreen1 extends StatefulWidget {
   final String nomEtablissement;
   final Utilisateur utilisateur;
 
+
   const TestPsychotechniqueScreen1({
     super.key,
     required this.secteur,
@@ -21,6 +22,7 @@ class TestPsychotechniqueScreen1 extends StatefulWidget {
     required this.matricule,
     required this.nomEtablissement,
     required this.utilisateur, 
+
   });
 
   @override
@@ -50,6 +52,7 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
     role: prefs.getString('role')!,
     token: prefs.getString('token')!,
     estComplet: prefs.getBool('estComplet')!,
+    id: prefs.getInt('id') ?? 0,
   );
 }
 

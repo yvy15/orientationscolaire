@@ -247,6 +247,7 @@ class _LoginPageState extends State<LoginPage> {
        await prefs.setString('role', utilisateur.role ?? '');
        await prefs.setString('token', utilisateur.token ?? '');
        await prefs.setBool('estComplet', utilisateur.estComplet);
+       await prefs.setInt('id', utilisateur.id ?? 0);
        var complet=utilisateur.estComplet;
         print('etat du profil $complet');
         // Redirection selon le rôle

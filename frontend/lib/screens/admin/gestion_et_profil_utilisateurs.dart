@@ -138,6 +138,7 @@ class _GestionEtProfilUtilisateursState
       email: utilisateur['Email'],
       role: utilisateur['Rôle'],
       estComplet: utilisateur['estComplet'] ?? false,
+      id: 0,  // ID temporaire, sera géré par le backend
     );
     await _utilisateurService.addUtilisateur(user);
     await _chargerUtilisateurs();
@@ -150,6 +151,7 @@ class _GestionEtProfilUtilisateursState
       email: utilisateur['Email'],
       role: utilisateur['Rôle'],
       estComplet: utilisateur['estComplet'] ?? false,
+      id: 0,  // ID temporaire, sera géré par le backend
     );
     await _utilisateurService.updateUtilisateur(user, id);
     await _chargerUtilisateurs();
