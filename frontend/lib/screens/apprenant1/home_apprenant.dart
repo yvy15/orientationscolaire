@@ -6,6 +6,7 @@ import 'package:frontend/services/ApprenantService.dart';
 import 'package:frontend/services/Classeservice.dart';
 import 'package:frontend/services/test_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:frontend/Config/ApiConfig.dart';
 
 class HomeApprenant extends StatefulWidget {
   final Utilisateur utilisateur;
@@ -270,7 +271,7 @@ class _HomeApprenantState extends State<HomeApprenant> {
   }
 
   Future<void> fetchEtablissements() async {
-    final response = await http.get(Uri.parse("http://localhost:8080/api/etablissements"));
+    final response = await http.get(Uri.parse("ApiConfig.baseUrl}/etablissements"));
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       setState(() {

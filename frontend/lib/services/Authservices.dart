@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 // import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/Config/ApiConfig.dart';
 
 
 class AuthService {
-  final String baseUrl = 'http://localhost:8080/api/auth'; // à adapter // lien vers le controller d'authentification : si l'adresse est en chiffre alors le fontend n'est pas dans le meme reseau que le backend , et ils sont dans le meme reseau dan le cas contraire qu'il y'a localhost. 
+  final String baseUrl = "${ApiConfig.baseUrl}/auth"; // à adapter // lien vers le controller d'authentification : si l'adresse est en chiffre alors le fontend n'est pas dans le meme reseau que le backend , 
+  //et ils sont dans le meme reseau dan le cas contraire qu'il y'a localhost. 
 
 
   Future<Utilisateur?> seconnecter(String email, String motPasse) async {

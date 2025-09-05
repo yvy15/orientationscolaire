@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:frontend/Config/ApiConfig.dart';
 
 class ApprenantService {
-  final String baseUrl = 'http://localhost:8080/api/apprenants';
+  
+  final String baseUrl = "${ApiConfig.baseUrl}/Apprenants";
 
   // Récupère tous les apprenants d'un établissement
   Future<List<Map<String, dynamic>>> getApprenants(int etablissementId) async {
@@ -101,7 +103,7 @@ class ApprenantService {
 
    // Vérification matricule
   static Future<bool> verifierMatricule(String matricule) async {
-    final response = await http.get(Uri.parse('http://localhost:8080/api/apprenants/verifier/$matricule'));
+    final response = await http.get(Uri.parse("${ApiConfig.baseUrl}/apprenants/verifier/$matricule"));
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as bool;
     } else {
@@ -118,7 +120,7 @@ class ApprenantService {
     required int id,
   }) async {
     
-    final uri = Uri.parse('http://localhost:8080/api/apprenants/mettreAJourProfil').replace(
+    final uri = Uri.parse("${ApiConfig.baseUrl}/Apprants/mettreAJourProfil").replace(
   queryParameters: {
     'matricule': matricule,
     'secteur': secteur,

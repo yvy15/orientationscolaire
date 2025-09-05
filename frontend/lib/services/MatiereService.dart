@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:frontend/models/Matiere.dart';
 import 'package:http/http.dart' as http;
+import 'package:frontend/Config/ApiConfig.dart';
+
 
 class MatiereService {
-  final String baseUrl = 'http://localhost:8080/api/matieres';
+  final String baseUrl = "${ApiConfig.baseUrl}/matieres";
 
 Future<List<Matiere>> getMatieres(int filiereId) async {
   final response = await http.get(Uri.parse('$baseUrl?filiereId=$filiereId'));

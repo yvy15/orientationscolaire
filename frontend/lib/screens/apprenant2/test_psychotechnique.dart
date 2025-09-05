@@ -6,6 +6,7 @@ import 'package:frontend/screens/apprenant2/dashboard_layout.dart';
 import 'package:frontend/screens/apprenant2/page_resultat.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/Config/ApiConfig.dart';
 
 class TestPsychotechniqueScreen extends StatefulWidget {
  
@@ -111,7 +112,7 @@ final quizData = jsonDecode(cleanContent);
 
         // Appel backend pour stocker infos
       final backendResponse = await http.post(
-        Uri.parse("http://localhost:8080/api/test/soumettre"),
+        Uri.parse("${ApiConfig.baseUrl}/test/soumettre"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );

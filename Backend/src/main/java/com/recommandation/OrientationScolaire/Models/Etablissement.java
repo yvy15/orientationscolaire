@@ -28,12 +28,14 @@ public class Etablissement {
 
 
     // Liste des apprenants (existante)
-     @OneToMany(mappedBy = "etablissement", cascade = CascadeType.ALL, orphanRemoval = true)
+   /* 
+    @neToMany(mappedBy = "etablissement", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Apprenant> apprenants;
 
     // Liste des classes associées à cet établissement
     @OneToMany(mappedBy = "etablissement", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Classe> classes;
+    */
 
 }

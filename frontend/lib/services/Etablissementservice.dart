@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:http/http.dart' as http;
+import 'package:frontend/Config/ApiConfig.dart';
+
 
 class EtablissementService {
-  final String baseUrl = 'http://localhost:8080/api/etablissements';
+  final String baseUrl = "${ApiConfig.baseUrl}/etablissements";
 
   Future<bool?> completerprofil(String nomEtablissement,String region, Utilisateur utilisateur) async {
 

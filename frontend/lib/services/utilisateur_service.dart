@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/Config/ApiConfig.dart';
 
 class UtilisateurService {
-  static const String baseUrl = 'http://localhost:8080/api/utilisateurs';
+  static const String baseUrl = "${ApiConfig.baseUrl}/utilisateurs";
 
   Future<List<Utilisateur>> getAllUtilisateurs() async {
     final response = await http.get(Uri.parse('$baseUrl/all'));

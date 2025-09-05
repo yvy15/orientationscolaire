@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/StatistiquesReponse.dart';
+import 'package:frontend/Config/ApiConfig.dart';
+
 
 class StatistiqueService {
-  final String baseUrl = 'http://localhost:8080/api/stats';
+  final String baseUrl = "${ApiConfig.baseUrl}/stats";
 
   Future<StatistiquesReponse> getStatsEtablissement(int etablissementId) async {
     final response =

@@ -7,6 +7,7 @@ import 'package:frontend/screens/apprenant1/page_resultat1.dart';
 import 'package:frontend/services/test_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/Config/ApiConfig.dart';
 
 class TestPsychotechniqueScreen1 extends StatefulWidget {
   final String? secteur;
@@ -77,7 +78,7 @@ class _TestPsychotechniqueScreenState1
         await _genererQuestionsDepuisMistral();
       } else {
         final backendResponse = await http.post(
-          Uri.parse("http://localhost:8080/api/test/soumettre"),
+          Uri.parse("${ApiConfig.baseUrl}/test/soumettre"),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(body),
         );

@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:frontend/Config/ApiConfig.dart';
 
 class NoteService {
-  final String baseUrl = 'http://localhost:8080/api/notes';
+  final String baseUrl = "${ApiConfig.baseUrl}/notes";
 
   Future<List<Map<String, dynamic>>> getNotes() async {
     final response = await http.get(Uri.parse(baseUrl));

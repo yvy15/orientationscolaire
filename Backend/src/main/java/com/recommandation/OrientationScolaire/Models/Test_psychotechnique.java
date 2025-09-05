@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Getter
 @Setter
@@ -42,6 +42,7 @@ public class Test_psychotechnique{
 
    @ManyToOne
    @JoinColumn(name = "apprenant_id")
+   @JsonBackReference
     private Apprenant apprenant;
 
 

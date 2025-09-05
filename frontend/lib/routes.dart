@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/etablissment/dashboard_layout.dart';
+import 'package:frontend/screens/accueil_screen.dart';
 import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/screens/register_screen.dart';
 import 'package:frontend/screens/apprenant2/test_psychotechnique.dart';
@@ -24,6 +25,10 @@ class Routes {
     }
 
     switch (settings.name) {
+
+      case AppRoutes.accueil:
+        return getRoute(widget: const AccueilScreen());
+
       case AppRoutes.login:
         return getRoute(widget: const LoginPage());
 

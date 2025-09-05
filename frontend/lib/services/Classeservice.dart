@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:frontend/models/Etablissement.dart';
 import 'package:http/http.dart' as http;
 import '../models/Classe.dart';
+import 'package:frontend/Config/ApiConfig.dart';
 
 class ClasseService {
-  final String baseUrl = 'http://localhost:8080/api/classes';
-  final String baseUrl1 = 'http://localhost:8080/api/etablissements';
+  final String baseUrl = "${ApiConfig.baseUrl}/classes";
+  final String baseUrl1 = "${ApiConfig.baseUrl}/etablissements";
 
 
  Future<Etablissement?> getEtablissementByUtilisateurEmail(String? userEmail) async {

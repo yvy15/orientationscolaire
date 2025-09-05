@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:frontend/Config/ApiConfig.dart';
 
 class EleveService {
-  final String baseUrl = 'http://localhost:8080/api/eleves';
+  final String baseUrl = "${ApiConfig.baseUrl}/eleves";
 
   Future<List<Map<String, dynamic>>> getEleves() async {
     final response = await http.get(Uri.parse(baseUrl));
@@ -12,6 +13,9 @@ class EleveService {
       throw Exception('Erreur lors du chargement des élèves');
     }
   }
+
+
+  
 
   Future<void> ajouterEleve(Map<String, dynamic> eleve) async {
     final response = await http.post(

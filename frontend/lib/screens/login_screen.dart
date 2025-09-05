@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/admin/layout_administrateur.dart';
 import 'package:frontend/screens/apprenant1/dashboard_layout.dart';
@@ -10,13 +9,10 @@ import 'package:frontend/utils/helpers/snackbar_helper.dart';
 import 'package:frontend/values/app_regex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../components/app_text_form_field.dart';
-import '../resources/resources.dart';
-import '../utils/common_widgets/gradient_background.dart';
 import '../utils/helpers/navigation_helper.dart';
 import '../values/app_constants.dart';
 import '../values/app_routes.dart';
 import '../values/app_strings.dart';
-import '../values/app_theme.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -27,17 +23,14 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-
   final ValueNotifier<bool> passwordNotifier = ValueNotifier(true);
   final ValueNotifier<bool> fieldValidNotifier = ValueNotifier(false);
-
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
 
   void initializeControllers() {
     emailController = TextEditingController()..addListener(controllerListener);
-    passwordController = TextEditingController()
-      ..addListener(controllerListener);
+    passwordController = TextEditingController()..addListener(controllerListener);
   }
 
   void disposeControllers() {
@@ -73,206 +66,251 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const GradientBackground(
-            children: [
-              Text(
-                AppStrings.signInToYourNAccount,
-                style: AppTheme.titleLarge,
-              ),
-              SizedBox(height: 6),
-              Text(AppStrings.signInToYourAccount, style: AppTheme.bodySmall),
-            ],
-          ),
-          Form(
-            key: _formKey,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // 👉 Bandeau violet arrondi en haut
+            SizedBox(
+              height: size.height * 0.35,
+              child: Stack(
                 children: [
-                  AppTextFormField(
-                    controller: emailController,
-                    labelText: AppStrings.email,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (_) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? AppStrings.pleaseEnterEmailAddress
-                          : AppConstants.emailRegex.hasMatch(value)
-                              ? null
-                              : AppStrings.invalidEmailAddress;
-                    },
+                  CustomPaint(
+                    size: Size(size.width, size.height * 0.35),
+                    painter: _HeaderPainter(),
                   ),
-                  ValueListenableBuilder(
-                    valueListenable: passwordNotifier,
-                    builder: (_, passwordObscure, __) {
-                      return AppTextFormField(
-                        obscureText: passwordObscure,
-                        controller: passwordController,
-                        labelText: AppStrings.password,
-                        textInputAction: TextInputAction.done,
-                        keyboardType: TextInputType.visiblePassword,
-                        onChanged: (_) => _formKey.currentState?.validate(),
-                        validator: (value) {
-                          return value!.isEmpty
-                              ? AppStrings.pleaseEnterPassword
-                              : AppConstants.passwordRegex.hasMatch(value)
-                                  ? null
-                                  : AppStrings.invalidPassword;
-                        },
-                        suffixIcon: IconButton(
-                          onPressed: () =>
-                              passwordNotifier.value = !passwordObscure,
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size.square(48),
-                          ),
-                          icon: Icon(
-                            passwordObscure
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            size: 20,
-                            color: Colors.black,
+                  Positioned(
+                    left: 20,
+                    bottom: 40,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Welcome Back,",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(AppStrings.forgotPassword),
-                  ),
-                  const SizedBox(height: 20),
-                  ValueListenableBuilder(
-                    valueListenable: fieldValidNotifier,
-                    builder: (_, isValid, __) {
-                      return FilledButton(
-                        onPressed: isValid
-                            ? () {
-                                seconnecter();
-                                SnackbarHelper.showSnackBar(
-                                  AppStrings.loggedIn,
-                                );
-                                emailController.clear();
-                                passwordController.clear();
-                              }
-                            : null,
-                        child: const Text(AppStrings.login),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.grey.shade200)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          AppStrings.orLoginWith,
-                          style: AppTheme.bodySmall.copyWith(
-                            color: Colors.black,
+                        Text(
+                          "Log In!",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                      Expanded(child: Divider(color: Colors.grey.shade200)),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: SvgPicture.asset(Vectors.google, width: 14),
-                          label: const Text(
-                            AppStrings.google,
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: SvgPicture.asset(Vectors.facebook, width: 14),
-                          label: const Text(
-                            AppStrings.facebook,
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                AppStrings.doNotHaveAnAccount,
-                style: AppTheme.bodySmall.copyWith(color: Colors.black),
-              ),
-              const SizedBox(width: 4),
-              TextButton(
-                onPressed: () => NavigationHelper.pushReplacementNamed(
-                  AppRoutes.register,
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    AppTextFormField(
+                      controller: emailController,
+                      labelText: "Email Address",
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      validator: (value) {
+                        return value!.isEmpty
+                            ? AppStrings.pleaseEnterEmailAddress
+                            : AppConstants.emailRegex.hasMatch(value)
+                                ? null
+                                : AppStrings.invalidEmailAddress;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    ValueListenableBuilder(
+                      valueListenable: passwordNotifier,
+                      builder: (_, passwordObscure, __) {
+                        return AppTextFormField(
+                          obscureText: passwordObscure,
+                          controller: passwordController,
+                          labelText: "Password",
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.visiblePassword,
+                          validator: (value) {
+                            return value!.isEmpty
+                                ? AppStrings.pleaseEnterPassword
+                                : AppConstants.passwordRegex.hasMatch(value)
+                                    ? null
+                                    : AppStrings.invalidPassword;
+                          },
+                          suffixIcon: IconButton(
+                            onPressed: () =>
+                                passwordNotifier.value = !passwordObscure,
+                            icon: Icon(
+                              passwordObscure
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // Remember me + Forgot password
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.check_circle,
+                                size: 18, color: Colors.blue),
+                            SizedBox(width: 6),
+                            Text("Remember me"),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            "Forgot password?",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Bouton dégradé
+                    ValueListenableBuilder(
+                      valueListenable: fieldValidNotifier,
+                      builder: (_, isValid, __) {
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                            ).copyWith(
+                              backgroundColor: WidgetStateProperty.all(null),
+                            ),
+                            onPressed: isValid ? seconnecter : null,
+                            child: Ink(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Container(
+                                alignment: Alignment.center,
+                                constraints: const BoxConstraints(
+                                  minHeight: 50,
+                                ),
+                                child: const Text(
+                                  "Log in",
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                child: const Text(AppStrings.register),
               ),
-            ],
-          ),
-        ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Register Now
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Don’t have an account? "),
+                TextButton(
+                  onPressed: () => NavigationHelper.pushReplacementNamed(
+                    AppRoutes.register,
+                  ),
+                  child: const Text(
+                    "Register Now",
+                    style: TextStyle(color: Color(0xFF4A00E0)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-   void seconnecter() async {
+  void seconnecter() async {
     try {
       final authService = AuthService();
-      final utilisateur = await authService.seconnecter(emailController.text, passwordController.text);
-      
-      if (utilisateur != null) {
+      final utilisateur = await authService.seconnecter(
+          emailController.text, passwordController.text);
 
+      if (utilisateur != null) {
         final prefs = await SharedPreferences.getInstance();
-       
-       await prefs.setString('nom_user', utilisateur.nom_user ?? '');
-       await prefs.setString('email', utilisateur.email ?? '');
-       await prefs.setString('role', utilisateur.role ?? '');
-       await prefs.setString('token', utilisateur.token ?? '');
-       await prefs.setBool('estComplet', utilisateur.estComplet);
-       await prefs.setInt('id', utilisateur.id ?? 0);
-       var complet=utilisateur.estComplet;
-        print('etat du profil $complet');
-        // Redirection selon le rôle
+        await prefs.setString('nom_user', utilisateur.nom_user ?? '');
+        await prefs.setString('email', utilisateur.email ?? '');
+        await prefs.setString('role', utilisateur.role ?? '');
+        await prefs.setString('token', utilisateur.token ?? '');
+        await prefs.setBool('estComplet', utilisateur.estComplet);
+        await prefs.setInt('id', utilisateur.id ?? 0);
+
         switch (utilisateur.role) {
-          
           case 'Etablissement':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => DashboardLayout(utilisateur : utilisateur)));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => DashboardLayout(utilisateur: utilisateur)),
+            );
             break;
           case 'Admin':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => LayoutAdministrateur(utilisateur : utilisateur)));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>
+                      LayoutAdministrateur(utilisateur: utilisateur)),
+            );
             break;
           case 'Apprenant1':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => DashboardLayoutApprenant(utilisateur : utilisateur)));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>
+                      DashboardLayoutApprenant(utilisateur: utilisateur)),
+            );
             break;
           case 'Apprenant2':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => DashboardLayoutApprenant1(utilisateur : utilisateur)));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>
+                      DashboardLayoutApprenant1(utilisateur: utilisateur)),
+            );
             break;
           default:
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Rôle inconnu.')),
+              const SnackBar(content: Text('Rôle inconnu.')),
             );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Échec de la connexion.')),
+          const SnackBar(content: Text('Échec de la connexion.')),
         );
       }
     } catch (e) {
@@ -281,8 +319,39 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
   }
-
-
-
 }
 
+// 🎨 Dessine la forme violette en haut
+class _HeaderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    Path path = Path();
+    path.lineTo(0, size.height * 0.75);
+    path.quadraticBezierTo(
+      size.width * 0.25,
+      size.height,
+      size.width * 0.5,
+      size.height * 0.85,
+    );
+    path.quadraticBezierTo(
+      size.width * 0.75,
+      size.height * 0.7,
+      size.width,
+      size.height * 0.85,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}

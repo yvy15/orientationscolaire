@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/etablissment/dashboard_classes.dart';
 import 'dashboard_home.dart';
-//import 'package:frontend/screens/etablissment/gerer_apprenant.dart';
 import 'dashboard_filieres.dart';
 import 'ajouter_apprenant.dart';
 import 'ajouter_note.dart';
@@ -28,7 +27,6 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       DashboardHome(utilisateur: widget.utilisateur),
       AjouterApprenantScreen(),
       AjouterNoteScreen(),
-     // GererApprenant(),
       DashboardFilieres(),
       DashboardStatistique(),
       DashboardClasses(),
@@ -39,24 +37,45 @@ class _DashboardLayoutState extends State<DashboardLayout> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/logo.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  widget.utilisateur.nom_user,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    shadows: [Shadow(blurRadius: 3, color: Colors.black)],
+            SizedBox(
+              height: 160,
+              child: Stack(
+                children: [
+                  CustomPaint(size: const Size(double.infinity, 160), painter: _HeaderPainter()),
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 20,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          widget.utilisateur.nom_user,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            shadows: [Shadow(blurRadius: 3, color: Colors.black)],
+                          ),
+                        ),
+                        CircleAvatar(
+                          radius: 25,
+                          backgroundColor: Colors.white.withOpacity(0.9),
+                          child: Text(
+                            widget.utilisateur.nom_user.isNotEmpty
+                                ? widget.utilisateur.nom_user[0].toUpperCase()
+                                : "?",
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF4A00E0),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             ListTile(
@@ -74,14 +93,9 @@ class _DashboardLayoutState extends State<DashboardLayout> {
               title: const Text('Ajouter une note'),
               onTap: () => _setPage(2),
             ),
-           /* ListTile(
-              leading: const Icon(Icons.school),
-              title: const Text('Gerer Apprenant'),
-              onTap: () => _setPage(3),
-            ),*/
             ListTile(
               leading: const Icon(Icons.category),
-              title: const Text('Gérer vos filieres'),
+              title: const Text('Gérer vos filières'),
               onTap: () => _setPage(3),
             ),
             ListTile(
@@ -99,6 +113,15 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       ),
       appBar: AppBar(
         title: const Text('Tableau de bord'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -138,54 +161,30 @@ class _DashboardLayoutState extends State<DashboardLayout> {
     setState(() {
       selectedIndex = index;
     });
-    Navigator.pop(context); // Fermer la sidebar
+    Navigator.pop(context);
   }
 }
 
-class _DashboardButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
+class _HeaderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
-  const _DashboardButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+    Path path = Path();
+    path.lineTo(0, size.height * 0.75);
+    path.quadraticBezierTo(size.width * 0.25, size.height, size.width * 0.5, size.height * 0.85);
+    path.quadraticBezierTo(size.width * 0.75, size.height * 0.7, size.width, size.height * 0.85);
+    path.lineTo(size.width, 0);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            color: Colors.blueAccent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 8,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(icon, color: Colors.white, size: 36),
-              const SizedBox(height: 8),
-              Text(label,
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

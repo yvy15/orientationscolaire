@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:frontend/models/Recommandation.dart';
 import 'package:http/http.dart' as http;
+import 'package:frontend/Config/ApiConfig.dart';
+
 
 class RecommandationReponseService {
-  final String baseUrl = 'http://localhost:8080/api/recommandation';
+  final String baseUrl = "${ApiConfig.baseUrl}/recommandation";
 
   // Envoie des réponses du test et récupération des recommandations
   Future<RecommandationResultat> soumettreReponses(Map<String, dynamic> reponses) async {

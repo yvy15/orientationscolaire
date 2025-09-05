@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:frontend/models/Test_psychotechnique.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:http/http.dart' as http;
+import 'package:frontend/Config/ApiConfig.dart';
+
 
 class TestService {
-  static const String baseUrl = "http://localhost:8080/api/test";
+  static const String baseUrl = "${ApiConfig.baseUrl}/test";
 
   /// ✅ Vérifier si le profil est complet
   static Future<Map<String, dynamic>> verifierProfil(

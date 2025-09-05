@@ -1,6 +1,7 @@
 package com.recommandation.OrientationScolaire.Models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -60,6 +61,7 @@ public class Apprenant {
 
     
     @OneToMany(mappedBy = "apprenant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Test_psychotechnique > tests;
+    @JsonManagedReference
+    private List<Test_psychotechnique> tests;
 
 }
