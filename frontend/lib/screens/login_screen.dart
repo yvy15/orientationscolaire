@@ -6,11 +6,11 @@ import 'package:frontend/screens/apprenant2/dashboard_layout.dart';
 import 'package:frontend/screens/etablissment/dashboard_layout.dart';
 import 'package:frontend/services/Authservices.dart';
 import 'package:frontend/utils/helpers/snackbar_helper.dart';
-import 'package:frontend/values/app_regex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../components/app_text_form_field.dart';
 import '../utils/helpers/navigation_helper.dart';
 import '../values/app_constants.dart';
+import '../values/app_regex.dart';
 import '../values/app_routes.dart';
 import '../values/app_strings.dart';
 
@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // 👉 Bandeau violet arrondi en haut
+            // 👉 Bandeau teal arrondi en haut
             SizedBox(
               height: size.height * 0.35,
               child: Stack(
@@ -168,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                         Row(
                           children: const [
                             Icon(Icons.check_circle,
-                                size: 18, color: Colors.blue),
+                                size: 18, color: Colors.teal),
                             SizedBox(width: 6),
                             Text("Remember me"),
                           ],
@@ -184,7 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Bouton dégradé
+                    // Bouton dégradé teal
                     ValueListenableBuilder(
                       valueListenable: fieldValidNotifier,
                       builder: (_, isValid, __) {
@@ -205,7 +205,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: Ink(
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+                                  colors: [Color(0xFF00C9A7), Color(0xFF005F73)],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -245,7 +245,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   child: const Text(
                     "Register Now",
-                    style: TextStyle(color: Color(0xFF4A00E0)),
+                    style: TextStyle(color: Color(0xFF005F73)),
                   ),
                 ),
               ],
@@ -321,13 +321,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-// 🎨 Dessine la forme violette en haut
+// 🎨 Dessine la forme teal en haut
 class _HeaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+        colors: [Color(0xFF00C9A7), Color(0xFF005F73)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));

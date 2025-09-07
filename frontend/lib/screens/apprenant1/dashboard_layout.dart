@@ -16,12 +16,13 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
   int selectedIndex = 0;
 
   late final List<Widget> pages;
+  final GlobalKey<HomeApprenantState> homeApprenantKey = GlobalKey<HomeApprenantState>();
 
   @override
   void initState() {
     super.initState();
     pages = [
-      HomeApprenant(utilisateur: widget.utilisateur),
+      HomeApprenant(key: homeApprenantKey, utilisateur: widget.utilisateur),
       TestPsychotechniqueScreen1(
         secteur: '',
         metiers: [],
@@ -42,7 +43,6 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            // 🎨 En-tête de la sidebar avec dégradé violet incurvé
             SizedBox(
               height: 160,
               child: Stack(
@@ -58,7 +58,6 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // 👉 Nom de l’utilisateur à gauche
                         Text(
                           widget.utilisateur.nom_user,
                           style: const TextStyle(
@@ -68,7 +67,6 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
                             shadows: [Shadow(blurRadius: 3, color: Colors.black)],
                           ),
                         ),
-                        // 👉 Avatar à droite
                         CircleAvatar(
                           radius: 25,
                           backgroundColor: Colors.white.withOpacity(0.9),
@@ -79,7 +77,7 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF4A00E0),
+                              color: Color(0xFF005F73),
                             ),
                           ),
                         ),
@@ -101,8 +99,14 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
               leading: const Icon(Icons.psychology),
               title: const Text('Test Psychotechnique'),
               onTap: () {
-                setState(() => selectedIndex = 1);
-                Navigator.pop(context);
+                final homeState = homeApprenantKey.currentState;
+                if (homeState != null) {
+                  Navigator.pop(context);
+                  homeState.startTestFromSidebar();
+                } else {
+                  setState(() => selectedIndex = 0);
+                  Navigator.pop(context);
+                }
               },
             ),
             ListTile(
@@ -125,11 +129,11 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
         ),
       ),
       appBar: AppBar(
-        title: const Text("Espace Apprenant"),
+        title: Text(_getPageTitle(selectedIndex)),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+              colors: [Color(0xFF00C9A7), Color(0xFF005F73)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -146,6 +150,23 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
       ),
       body: pages[selectedIndex],
     );
+  }
+
+  String _getPageTitle(int index) {
+    switch (index) {
+      case 0:
+        return "Espace Apprenant";
+      case 1:
+        return "Test Psychotechnique";
+      case 2:
+        return "Gérer son profil";
+      case 3:
+        return "Modifier son secteur";
+      case 4:
+        return "Historique des tests";
+      default:
+        return "Espace Apprenant";
+    }
   }
 }
 
@@ -164,17 +185,15 @@ class PlaceholderPage extends StatelessWidget {
   }
 }
 
-// 🎨 Painter pour le header de la sidebar (même style que login/inscription)
 class _HeaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+        colors: [Color(0xFF00C9A7), Color(0xFF005F73)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
     Path path = Path();
     path.lineTo(0, size.height * 0.75);
     path.quadraticBezierTo(
@@ -191,7 +210,6 @@ class _HeaderPainter extends CustomPainter {
     );
     path.lineTo(size.width, 0);
     path.close();
-
     canvas.drawPath(path, paint);
   }
 

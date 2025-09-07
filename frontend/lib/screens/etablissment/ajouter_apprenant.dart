@@ -38,11 +38,10 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
   }
 
   Future<void> _chargerClassesEtFilieres() async {
-    print("ici je suis venu");
     final userEmail = await _getUtilisateurEmail();
     if (userEmail != null && userEmail.isNotEmpty) {
       final etablissement =
-          await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
       if (etablissement != null) {
         int etablissementId = etablissement.id;
         _classes = await ClasseService().getClasses(etablissementId);
@@ -50,16 +49,11 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
         _donneesFilieres = await FiliereService()
             .getFilieresParClassePourEtablissement(etablissementId);
         setState(() {
-          //print("ici je suis venu 2");
-          print("voici la liste des classes : $_listeClasses");
-          print("voici les filieres : $_donneesFilieres");
-          if (_listeClasses.isNotEmpty)
-            _classeSelectionnee = _listeClasses.first;
+          if (_listeClasses.isNotEmpty) _classeSelectionnee = _listeClasses.first;
           if (_classeSelectionnee != null &&
               _donneesFilieres[_classeSelectionnee!] != null) {
-            _filiereSelectionnee = _donneesFilieres[_classeSelectionnee!]!
-                .first['filiere']
-                .toString();
+            _filiereSelectionnee =
+                _donneesFilieres[_classeSelectionnee!]!.first['filiere'].toString();
           }
         });
         await _chargerApprenants();
@@ -71,7 +65,7 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
     final userEmail = await _getUtilisateurEmail();
     if (userEmail != null && userEmail.isNotEmpty) {
       final etablissement =
-          await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
       if (etablissement != null) {
         int etablissementId = etablissement.id;
         _apprenants = await ApprenantService().getApprenants(etablissementId);
@@ -92,13 +86,13 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
     }
 
     final classeObj = _classes.firstWhere(
-        (c) => c.classe == _classeSelectionnee,
+            (c) => c.classe == _classeSelectionnee,
         orElse: () => Classe(id: null, classe: '', etablissement: null));
     if (classeObj.id == null) return;
 
     final filiereList = _donneesFilieres[_classeSelectionnee!];
     final filiereObj = filiereList?.firstWhere(
-      (f) => f['filiere'].toString() == _filiereSelectionnee,
+          (f) => f['filiere'].toString() == _filiereSelectionnee,
       orElse: () => <String, dynamic>{},
     );
     if (filiereObj == null || filiereObj.isEmpty || filiereObj['id'] == null)
@@ -110,16 +104,13 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
       'filiereId': filiereObj['id'],
       'dateInscription': _dateInscription!.toIso8601String().substring(0, 10),
     };
-     print("voici la filiere identifiant : ${filiereObj['id']}");
-   
+
     if (_apprenantEnEditionId != null) {
-      // Modifier
       await ApprenantService()
           .modifierApprenant(_apprenantEnEditionId!, apprenantData);
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Apprenant modifié avec succès')));
     } else {
-      // Ajouter
       await ApprenantService().ajouterApprenant(apprenantData);
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Apprenant ajouté avec succès')));
@@ -161,200 +152,268 @@ class _AjouterApprenantScreenState extends State<AjouterApprenantScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 800; // 🔹 Détection des grands écrans
+
+    return SingleChildScrollView( // 🔹 permet le scroll sur petits écrans
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Ajouter un nouvel apprenant',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _matriculeController,
-            decoration: const InputDecoration(
-                labelText: 'Matricule', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          Row(
+      child: Center(
+        child: ConstrainedBox( // 🔹 largeur max sur desktop
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 2,
-                child: DropdownButtonFormField<String>(
-                  value: _classeSelectionnee,
-                  decoration: const InputDecoration(
-                      labelText: 'Classe', border: OutlineInputBorder()),
-                  items: _listeClasses
-                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                      .toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _classeSelectionnee = val;
-                      if (_donneesFilieres[_classeSelectionnee!] != null) {
-                        _filiereSelectionnee =
-                            _donneesFilieres[_classeSelectionnee!]!
-                                .first['filiere']
-                                .toString();
-                      }
-                    });
+              const Text('Ajouter un nouvel apprenant',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+
+              // 🔹 Formulaire : affichage en colonne ou grille selon la taille
+              isLargeScreen
+                  ? Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _matriculeController,
+                      decoration: const InputDecoration(
+                          labelText: 'Matricule',
+                          border: OutlineInputBorder()),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _classeSelectionnee,
+                      decoration: const InputDecoration(
+                          labelText: 'Classe',
+                          border: OutlineInputBorder()),
+                      items: _listeClasses
+                          .map((c) =>
+                          DropdownMenuItem(value: c, child: Text(c)))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _classeSelectionnee = val;
+                          if (_donneesFilieres[_classeSelectionnee!] !=
+                              null) {
+                            _filiereSelectionnee =
+                                _donneesFilieres[_classeSelectionnee!]!
+                                    .first['filiere']
+                                    .toString();
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _filiereSelectionnee,
+                      decoration: const InputDecoration(
+                          labelText: 'Filière',
+                          border: OutlineInputBorder()),
+                      items: (_classeSelectionnee != null &&
+                          _donneesFilieres[_classeSelectionnee!] !=
+                              null)
+                          ? _donneesFilieres[_classeSelectionnee!]!
+                          .map((f) => DropdownMenuItem(
+                          value: f['filiere'].toString(),
+                          child:
+                          Text(f['filiere'].toString())))
+                          .toList()
+                          : [],
+                      onChanged: _onFiliereChanged,
+                    ),
+                  ),
+                ],
+              )
+                  : Column(
+                children: [
+                  TextField(
+                    controller: _matriculeController,
+                    decoration: const InputDecoration(
+                        labelText: 'Matricule',
+                        border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: _classeSelectionnee,
+                    decoration: const InputDecoration(
+                        labelText: 'Classe', border: OutlineInputBorder()),
+                    items: _listeClasses
+                        .map((c) =>
+                        DropdownMenuItem(value: c, child: Text(c)))
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _classeSelectionnee = val;
+                        if (_donneesFilieres[_classeSelectionnee!] !=
+                            null) {
+                          _filiereSelectionnee =
+                              _donneesFilieres[_classeSelectionnee!]!
+                                  .first['filiere']
+                                  .toString();
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: _filiereSelectionnee,
+                    decoration: const InputDecoration(
+                        labelText: 'Filière',
+                        border: OutlineInputBorder()),
+                    items: (_classeSelectionnee != null &&
+                        _donneesFilieres[_classeSelectionnee!] != null)
+                        ? _donneesFilieres[_classeSelectionnee!]!
+                        .map((f) => DropdownMenuItem(
+                        value: f['filiere'].toString(),
+                        child: Text(f['filiere'].toString())))
+                        .toList()
+                        : [],
+                    onChanged: _onFiliereChanged,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+              TextField(
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: _dateInscription == null
+                      ? 'Date d\'inscription'
+                      : 'Date: ${_dateInscription!.day.toString().padLeft(2, '0')}/${_dateInscription!.month.toString().padLeft(2, '0')}/${_dateInscription!.year}',
+                  border: const OutlineInputBorder(),
+                ),
+                onTap: _selectDate,
+              ),
+              const SizedBox(height: 20),
+
+              const Text('Apprenants de votre établissement',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+
+              // 🔹 Liste responsive (limite la largeur)
+              SizedBox(
+                height: 400,
+                child: _apprenants.isEmpty
+                    ? const Center(child: Text('Aucun apprenant'))
+                    : ListView.builder(
+                  itemCount: _apprenants.length,
+                  itemBuilder: (context, index) {
+                    final apprenant = _apprenants[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      child: ListTile(
+                        title: Text(apprenant['matricule'] ?? ''),
+                        subtitle: Text(
+                          'Classe : ${apprenant['nomclasse'] ?? 'N/A'}\n'
+                              'Filière : ${apprenant['filiere']?['filiere'] ?? 'N/A'}\n'
+                              'Inscrit le : ${apprenant['dateInscription']?.substring(0, 10) ?? 'N/A'}',
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit,
+                                  color: Colors.blue),
+                              tooltip: 'Modifier',
+                              onPressed: () {
+                                setState(() {
+                                  _apprenantEnEditionId =
+                                  apprenant['id'];
+                                  _matriculeController.text =
+                                      apprenant['matricule'] ?? '';
+                                  _classeSelectionnee =
+                                  apprenant['nomclasse'];
+                                  final filieres =
+                                      _donneesFilieres[_classeSelectionnee!] ??
+                                          [];
+                                  final filiereApprenant = apprenant['filiere']
+                                  ?['filiere']
+                                      ?.toString();
+                                  final filiereTrouvee =
+                                  filieres.firstWhere(
+                                        (f) =>
+                                    f['filiere'].toString() ==
+                                        filiereApprenant,
+                                    orElse: () => filieres.isNotEmpty
+                                        ? filieres.first
+                                        : <String, dynamic>{},
+                                  );
+                                  _filiereSelectionnee =
+                                  filiereTrouvee.isNotEmpty
+                                      ? filiereTrouvee['filiere']
+                                      .toString()
+                                      : null;
+                                  if (apprenant['dateInscription'] !=
+                                      null) {
+                                    final date =
+                                    DateTime.tryParse(apprenant['dateInscription']);
+                                    if (date != null)
+                                      _dateInscription = date;
+                                  }
+                                });
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete,
+                                  color: Colors.red),
+                              tooltip: 'Supprimer',
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Confirmation'),
+                                    content: const Text(
+                                        'Voulez-vous vraiment supprimer cet apprenant ?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Annuler'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: const Text('Supprimer'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true) {
+                                  try {
+                                    await ApprenantService()
+                                        .supprimerApprenant(apprenant['id']);
+                                    await _chargerApprenants();
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                        content: Text(
+                                            'Apprenant supprimé avec succès')));
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(
+                                        content: Text(
+                                            'Erreur lors de la suppression: $e')));
+                                  }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 3,
-                child: DropdownButtonFormField<String>(
-                  value: _filiereSelectionnee,
-                  decoration: const InputDecoration(
-                      labelText: 'Filière', border: OutlineInputBorder()),
-                  items: (_classeSelectionnee != null &&
-                          _donneesFilieres[_classeSelectionnee!] != null)
-                      ? _donneesFilieres[_classeSelectionnee!]!
-                          .map((f) => DropdownMenuItem(
-                              value: f['filiere'].toString(),
-                              child: Text(f['filiere'].toString())))
-                          .toList()
-                      : [],
-                  onChanged: _onFiliereChanged,
-                ),
+
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _ajouterApprenant,
+                child: Text(_apprenantEnEditionId != null
+                    ? 'Modifier Apprenant'
+                    : 'Ajouter Apprenant'),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: _dateInscription == null
-                        ? 'Date d\'inscription'
-                        : 'Date: ${_dateInscription!.day.toString().padLeft(2, '0')}/${_dateInscription!.month.toString().padLeft(2, '0')}/${_dateInscription!.year}',
-                    border: const OutlineInputBorder(),
-                  ),
-                  onTap: _selectDate,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text('Apprenants de votre établissement',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Expanded(
-            child: _apprenants.isEmpty
-                ? const Center(child: Text('Aucun apprenant'))
-                : ListView.builder(
-                    itemCount: _apprenants.length,
-                    itemBuilder: (context, index) {
-                      final apprenant = _apprenants[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        child: ListTile(
-                          title: Text(apprenant['matricule'] ?? ''),
-                          subtitle: Text(
-                            'Classe : ${apprenant['nomclasse'] ?? 'N/A'}\n'
-                            'Filière : ${apprenant['filiere']?['filiere'] ?? 'N/A'}\n'
-                            'Inscrit le : ${apprenant['dateInscription']?.substring(0, 10) ?? 'N/A'}',
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.blue),
-                                tooltip: 'Modifier',
-                                onPressed: () {
-                                  setState(() {
-                                    _apprenantEnEditionId = apprenant['id'];
-                                    _matriculeController.text =
-                                        apprenant['matricule'] ?? '';
-                                    _classeSelectionnee =
-                                        apprenant['nomclasse'];
-                                    // Synchronise la filière avec la classe sélectionnée
-                                    final filieres = _donneesFilieres[
-                                            _classeSelectionnee!] ??
-                                        [];
-                                    final filiereApprenant =
-                                        apprenant['filiere']?['filiere']
-                                            ?.toString();
-                                    final filiereTrouvee = filieres.firstWhere(
-                                      (f) =>
-                                          f['filiere'].toString() ==
-                                          filiereApprenant,
-                                      orElse: () => filieres.isNotEmpty
-                                          ? filieres.first
-                                          : <String, dynamic>{},
-                                    );
-                                    _filiereSelectionnee = filiereTrouvee
-                                            .isNotEmpty
-                                        ? filiereTrouvee['filiere'].toString()
-                                        : null;
-                                    if (apprenant['dateInscription'] != null) {
-                                      final date = DateTime.tryParse(
-                                          apprenant['dateInscription']);
-                                      if (date != null) _dateInscription = date;
-                                    }
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                tooltip: 'Supprimer',
-                                onPressed: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Confirmation'),
-                                      content: const Text(
-                                          'Voulez-vous vraiment supprimer cet apprenant ?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(false),
-                                          child: const Text('Annuler'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(true),
-                                          child: const Text('Supprimer'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                  if (confirm == true) {
-                                    try {
-                                      await ApprenantService()
-                                          .supprimerApprenant(apprenant['id']);
-                                      await _chargerApprenants();
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'Apprenant supprimé avec succès')));
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(SnackBar(
-                                              content: Text(
-                                                  'Erreur lors de la suppression: $e')));
-                                    }
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _ajouterApprenant,
-            child: Text(_apprenantEnEditionId != null
-                ? 'Modifier Apprenant'
-                : 'Ajouter Apprenant'),
-          ),
-        ],
+        ),
       ),
     );
   }

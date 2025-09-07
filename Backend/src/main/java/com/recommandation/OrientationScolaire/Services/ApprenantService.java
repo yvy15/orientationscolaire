@@ -116,4 +116,32 @@ public class ApprenantService {
 
         return apprenantRepository.save(apprenant);
     }
+
+
+
+// Ajouter un apprenant indépendant
+public Apprenant ajouterApprenantIndependant(String nom_user , String secteur, String niveau,
+                                            List<String> metiers, String email) throws Exception {
+    Apprenant apprenant = new Apprenant();
+
+    apprenant.setMatricule(null); // pas de matricule
+    apprenant.setEtablissement(null); // pas d'établissement
+    apprenant.setFiliere(null); // pas de filière
+    apprenant.setNomclasse(null); // pas de classe
+    apprenant.setDateInscription(LocalDate.now());
+
+    apprenant.setSecteur_activite(secteur);
+    apprenant.setNiveau(niveau);
+    apprenant.setListeMetiers(metiers);
+
+    // 🔹 Associer à l'utilisateur existant
+    Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
+            .orElseThrow(() -> new Exception("Utilisateur non trouvé avec email : " + email));
+    apprenant.setUtilisateur(utilisateur);
+
+    return apprenantRepository.save(apprenant);
+}
+
+
+
 }

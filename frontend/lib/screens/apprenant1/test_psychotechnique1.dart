@@ -26,12 +26,10 @@ class TestPsychotechniqueScreen1 extends StatefulWidget {
   });
 
   @override
-  State<TestPsychotechniqueScreen1> createState() =>
-      _TestPsychotechniqueScreenState1();
+  State<TestPsychotechniqueScreen1> createState() => _TestPsychotechniqueScreenState1();
 }
 
-class _TestPsychotechniqueScreenState1
-    extends State<TestPsychotechniqueScreen1> {
+class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1> {
   List<Map<String, dynamic>> questions = [];
   Map<int, String> reponsesUtilisateur = {};
   bool isLoading = true;
@@ -113,7 +111,6 @@ class _TestPsychotechniqueScreenState1
     final mistralData = jsonDecode(mistralResponse.body);
     final content = mistralData['choices'][0]['message']['content'];
 
-    // Nettoyage JSON si nécessaire
     String cleanContent = content.trim();
     int startIndex = cleanContent.indexOf('{');
     if (startIndex != -1) cleanContent = cleanContent.substring(startIndex);
@@ -194,7 +191,6 @@ Analyse et retourne un JSON des scores par métiers, 3 carrières adaptées, 2 f
     final content = jsonDecode(mistralResponse.body);
     final message = content['choices'][0]['message']['content'];
 
-    // Parsing sécurisé
     late Map<String, dynamic> resultats;
     try {
       resultats = jsonDecode(message);
@@ -220,78 +216,99 @@ Analyse et retourne un JSON des scores par métiers, 3 carrières adaptées, 2 f
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.teal,
-                image: DecorationImage(
-                  image: AssetImage('assets/logo.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Accueil'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.psychology),
-              title: const Text('Test Psychotechnique'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Modifier son secteur'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Historique des tests'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
       appBar: AppBar(
-        title: const Text("Test psychotechnique"),
-        backgroundColor: Colors.teal,
+        title: const Text("Test Psychotechnique"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
               Navigator.pushReplacementNamed(context, '/login');
             },
-          )
+          ),
         ],
       ),
-      body: isLoading ? _buildSkeleton() : _buildQuestionnaire(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: isLoading
+            ? _buildSkeleton()
+            : Column(
+          children: [
+            _buildQuestionnaire(),
+            const SizedBox(height: 20),
+            if (reponsesUtilisateur.length == questions.length)
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    final result = await analyserEtEnregistrerResultats(
+                      matricule: widget.matricule,
+                      secteur: widget.secteur ?? '',
+                      metiers: widget.metiers,
+                      questions: questions,
+                      userAnswers: reponsesUtilisateur,
+                      utilisateur: widget.utilisateur,
+                    );
+                    setState(() {
+                      resultats = result;
+                    });
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text("Résultats du Test"),
+                          content: SingleChildScrollView(
+                            child: ResultatsDialogContent1(
+                              resultats1: resultats!,
+                              sousMetiersChoisis1: widget.metiers.cast<String>(),
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => DashboardLayoutApprenant(utilisateur: widget.utilisateur),
+                                  ),
+                                );
+                              },
+                              child: const Text("Retour au tableau de bord"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } catch (e) {
+                    print("❌ Erreur : $e");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Erreur lors de l’analyse : $e")),
+                    );
+                  }
+                },
+                child: const Text("Terminer le test"),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildSkeleton() {
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: 6,
-      padding: const EdgeInsets.all(16),
       itemBuilder: (context, index) => Container(
         margin: const EdgeInsets.only(bottom: 16),
         height: 100,
         decoration: BoxDecoration(
-          color: Colors.grey[300],
+            color: Color(0xFF005F73),
           borderRadius: BorderRadius.circular(12),
         ),
       ),
@@ -299,109 +316,41 @@ Analyse et retourne un JSON des scores par métiers, 3 carrières adaptées, 2 f
   }
 
   Widget _buildQuestionnaire() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ListView.builder(
-        itemCount: questions.length + 1,
-        itemBuilder: (context, index) {
-          if (index == questions.length) {
-            return ElevatedButton(
-              onPressed: reponsesUtilisateur.length == questions.length
-                  ? () async {
-                      try {
-                        final result = await analyserEtEnregistrerResultats(
-                          matricule: widget.matricule,
-                          secteur: widget.secteur ?? '',
-                          metiers: widget.metiers,
-                          questions: questions,
-                          userAnswers: reponsesUtilisateur,
-                          utilisateur: widget.utilisateur,
-                        );
-
-                        setState(() {
-                          resultats = result;
-                        });
-
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text("Résultats du Test"),
-                              content: SingleChildScrollView(
-                                child: ResultatsDialogContent1(
-                                  resultats1: resultats!,
-                                  sousMetiersChoisis1:
-                                      widget.metiers.cast<String>(),
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () async {
-                                    Navigator.pop(context);
-                                    final utilisateur =
-                                        await getUtilisateurDepuisPrefs();
-
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            DashboardLayoutApprenant(
-                                                utilisateur: utilisateur),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                      "Retour au tableau de bord"),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      } catch (e) {
-                        print("❌ Erreur : $e");
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  "Erreur lors de l’analyse : $e")),
-                        );
-                      }
-                    }
-                  : null,
-              child: const Text("Terminer le test"),
-            );
-          }
-
-          final question = questions[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("${index + 1}. ${question['question']}",
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  ...["A", "B", "C"].map((option) {
-                    return RadioListTile(
-                      value: option,
-                      groupValue: reponsesUtilisateur[index],
-                      title: Text(
-                          "$option) ${question['options'][option]['text']}"),
-                      onChanged: (val) {
-                        setState(() {
-                          reponsesUtilisateur[index] = val!;
-                        });
-                      },
-                    );
-                  })
-                ],
-              ),
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: questions.length,
+      itemBuilder: (context, index) {
+        final question = questions[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${index + 1}. ${question['question']}",
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                ...["A", "B", "C"].map((option) {
+                  return RadioListTile(
+                    value: option,
+                    groupValue: reponsesUtilisateur[index],
+                    title: Text("$option) ${question['options'][option]['text']}"),
+                    onChanged: (val) {
+                      setState(() {
+                        reponsesUtilisateur[index] = val!;
+                      });
+                    },
+                  );
+                })
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

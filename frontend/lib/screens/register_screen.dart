@@ -83,7 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Bandeau violet arrondi
+            // Bandeau teal arrondi
             CustomPaint(
               painter: _HeaderPainter(),
               child: Container(
@@ -252,7 +252,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 25),
 
-                    // Bouton gradient arrondi
+                    // Bouton gradient teal arrondi
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -268,7 +268,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Ink(
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+                              colors: [Color(0xFF00C9A7), Color(0xFF005F73)],
                             ),
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -304,7 +304,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   },
                   child: const Text(
                     "Se connecter",
-                    style: TextStyle(color: Color(0xFF4A00E0)),
+                    style: TextStyle(color: Color(0xFF005F73)),
                   ),
                 ),
               ],
@@ -350,13 +350,13 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-// Painter pour la forme violette arrondie
+// 🎨 Painter pour la forme teal arrondie
 class _HeaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+        colors: [Color(0xFF00C9A7), Color(0xFF005F73)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));

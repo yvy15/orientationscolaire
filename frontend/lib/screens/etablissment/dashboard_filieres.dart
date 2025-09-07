@@ -36,11 +36,11 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
   }
 
   Future<void> _chargerDonnees() async {
-      print('Chargement des filières...');
     try {
       final service = FiliereService();
       final userEmail = await getUtilisateurEmail();
-      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      final etablissement =
+      await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
       if (etablissement != null) {
         final data = await service.getFilieresParClassePourEtablissement(etablissement.id);
         setState(() {
@@ -55,10 +55,10 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
   Future<void> _chargerClasses() async {
     final userEmail = await getUtilisateurEmail();
     if (userEmail != null && userEmail.isNotEmpty) {
-      final etablissement = await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
+      final etablissement =
+      await ClasseService().getEtablissementByUtilisateurEmail(userEmail);
       if (etablissement != null) {
-        int etablissementId = etablissement.id;
-        _classes = await ClasseService().getClasses(etablissementId);
+        _classes = await ClasseService().getClasses(etablissement.id);
         setState(() {
           _listeClasses = _classes.map((classe) => classe.classe).toList();
           if (_listeClasses.isNotEmpty && _classeSelectionnee == null) {
@@ -70,7 +70,6 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
   }
 
   Future<void> _ajouterOuModifier() async {
-    print('Début ajout filière');
     final filieresTexte = _filieresController.text.trim();
     if (_classeSelectionnee == null || filieresTexte.isEmpty) return;
 
@@ -90,7 +89,7 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
       }
     } else {
       final classeObj = _classes.firstWhere(
-        (c) => c.classe == _classeSelectionnee,
+            (c) => c.classe == _classeSelectionnee,
         orElse: () => Classe(id: null, classe: '', etablissement: null),
       );
       if (classeObj.id != null) {
@@ -98,6 +97,7 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
         await _chargerDonnees();
       }
     }
+
     _filieresController.clear();
     _editingClasse = null;
     _editingFiliere = null;
@@ -134,10 +134,9 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
   }
 
   Future<void> _supprimerFiliere(String classe, String filiere) async {
-    print('Suppression de la filière ');
     final service = FiliereService();
     final filiereObj = _donnees[classe]
-  ?.firstWhere((f) => f['filiere'].toString() == filiere, orElse: () => {});
+        ?.firstWhere((f) => f['filiere'].toString() == filiere, orElse: () => {});
     if (filiereObj != null && filiereObj['id'] != null) {
       await service.supprimerFiliere(filiereObj['id']);
       await _chargerDonnees();
@@ -149,7 +148,6 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
     if (recherche.isEmpty) return _donnees;
 
     final filtered = <String, List<Map<String, dynamic>>>{};
-
     _donnees.forEach((classe, filieres) {
       final matchClasse = classe.toLowerCase().contains(recherche);
       final filieresFiltres = filieres
@@ -161,168 +159,171 @@ class _DashboardFilieresState extends State<DashboardFilieres> {
         filtered[classe] = filieresFiltres;
       }
     });
-
     return filtered;
+  }
+
+  Widget buildResponsiveRow(List<Widget> children, {double spacing = 12}) {
+    return LayoutBuilder(builder: (context, constraints) {
+      bool isMobile = constraints.maxWidth < 600;
+      if (isMobile) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children
+              .map((w) => Padding(
+            padding: EdgeInsets.only(bottom: spacing),
+            child: w,
+          ))
+              .toList(),
+        );
+      } else {
+        return Row(
+          children: children
+              .map((w) => Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(right: spacing),
+              child: w,
+            ),
+          ))
+              .toList(),
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final donneesFiltrees = _filtrerDonnees();
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Gérer vos filières',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Gérer vos filières') , automaticallyImplyLeading: false,),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            buildResponsiveRow([
+              TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Rechercher classe ou filière',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() {}),
               ),
-              SizedBox(
-                width: 280,
-                child: TextField(
-                  controller: _searchController,
-                  decoration: const InputDecoration(
-                    hintText: 'Rechercher classe ou filière',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (_) => setState(() {}),
+            ]),
+            const SizedBox(height: 20),
+            buildResponsiveRow([
+              DropdownButtonFormField<String>(
+                value: _classeSelectionnee,
+                decoration: const InputDecoration(
+                  labelText: 'Classe à orienter',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.school),
+                ),
+                items: _listeClasses
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (val) => setState(() => _classeSelectionnee = val),
+              ),
+              TextField(
+                controller: _filieresController,
+                decoration: const InputDecoration(
+                  labelText: 'Filières disponibles (séparées par des virgules)',
+                  border: OutlineInputBorder(),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: DropdownButtonFormField<String>(
-                  value: _classeSelectionnee,
-                  decoration: const InputDecoration(
-                    labelText: 'Classe à orienter',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.school),
-                  ),
-                  items: _listeClasses
-                      .map(
-                        (c) => DropdownMenuItem(
-                          value: c,
-                          child: Text(c),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _classeSelectionnee = val;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 3,
-                child: TextField(
-                  controller: _filieresController,
-                  decoration: const InputDecoration(
-                    labelText: 'Filières disponibles (séparées par des virgules)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
               ElevatedButton(
-                onPressed: () async {
-                  await _ajouterOuModifier();
-                },
+                onPressed: _ajouterOuModifier,
                 child: Text(_editingClasse != null || _editingFiliere != null
                     ? 'Modifier'
                     : 'Ajouter'),
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: donneesFiltrees.isEmpty
+            ]),
+            const SizedBox(height: 20),
+            donneesFiltrees.isEmpty
                 ? const Center(child: Text('Aucune donnée trouvée'))
-                : ListView(
-                    children: donneesFiltrees.entries.map((entry) {
-                      final classe = entry.key;
-                      final filieres = entry.value;
-                      final estOuvert = _isExpanded[classe] ?? false;
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        elevation: 3,
-                        child: Column(
+                : Column(
+              children: donneesFiltrees.entries.map((entry) {
+                final classe = entry.key;
+                final filieres = entry.value;
+                final estOuvert = _isExpanded[classe] ?? false;
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  elevation: 3,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading:
+                        const Icon(Icons.school, color: Colors.blue),
+                        title: Text(
+                          'Classe : $classe',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            _isExpanded[classe] = !estOuvert;
+                          });
+                        },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            ListTile(
-                              leading: const Icon(Icons.school, color: Colors.blue),
-                              title: Text(
-                                'Classe : $classe',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  _isExpanded[classe] = !estOuvert;
-                                });
-                              },
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.orange),
-                                    tooltip: 'Modifier la classe',
-                                    onPressed: () => _modifierClasse(classe),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    tooltip: 'Supprimer la classe',
-                                    onPressed: () => _supprimerClasse(classe),
-                                  ),
-                                ],
-                              ),
+                            IconButton(
+                              icon: const Icon(Icons.edit,
+                                  color: Colors.orange),
+                              tooltip: 'Modifier la classe',
+                              onPressed: () => _modifierClasse(classe),
                             ),
-                            if (estOuvert)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-                                child: Column(
-                                  children: filieres.map((filiereObj) {
-                                    return ListTile(
-                                      title: Text(filiereObj['filiere'].toString()),
-                                      trailing: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.edit, color: Colors.blue),
-                                            tooltip: 'Modifier la filière',
-                                            onPressed: () => _modifierFiliere(
-                                                classe, filiereObj['filiere'].toString()),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.delete, color: Colors.red),
-                                            tooltip: 'Supprimer la filière',
-                                            onPressed: () => _supprimerFiliere(
-                                                classe, filiereObj['filiere'].toString()),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
+                            IconButton(
+                              icon:
+                              const Icon(Icons.delete, color: Colors.red),
+                              tooltip: 'Supprimer la classe',
+                              onPressed: () => _supprimerClasse(classe),
+                            ),
                           ],
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      if (estOuvert)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16, right: 16, bottom: 8),
+                          child: Column(
+                            children: filieres.map((filiereObj) {
+                              return ListTile(
+                                title:
+                                Text(filiereObj['filiere'].toString()),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit,
+                                          color: Colors.blue),
+                                      tooltip: 'Modifier la filière',
+                                      onPressed: () => _modifierFiliere(
+                                          classe,
+                                          filiereObj['filiere'].toString()),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      tooltip: 'Supprimer la filière',
+                                      onPressed: () => _supprimerFiliere(
+                                          classe,
+                                          filiereObj['filiere'].toString()),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
                   ),
-          ),
-        ],
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

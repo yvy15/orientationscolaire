@@ -48,7 +48,7 @@ class _DashboardStatistiqueState extends State<DashboardStatistique> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("📊 Statistiques de l'établissement")),
+      appBar: AppBar(title: const Text("📊 Statistiques de l'établissement") , automaticallyImplyLeading: false,),
       body: FutureBuilder<StatistiquesReponse>(
         future: statsFuture,
         builder: (context, snapshot) {

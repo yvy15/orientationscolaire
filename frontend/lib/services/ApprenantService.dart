@@ -4,7 +4,7 @@ import 'package:frontend/Config/ApiConfig.dart';
 
 class ApprenantService {
   
-  final String baseUrl = "${ApiConfig.baseUrl}/Apprenants";
+   static const String baseUrl = "${ApiConfig.baseUrl}/apprenants";
 
   // Récupère tous les apprenants d'un établissement
   Future<List<Map<String, dynamic>>> getApprenants(int etablissementId) async {
@@ -120,7 +120,7 @@ class ApprenantService {
     required int id,
   }) async {
     
-    final uri = Uri.parse("${ApiConfig.baseUrl}/Apprants/mettreAJourProfil").replace(
+    final uri = Uri.parse("${ApiConfig.baseUrl}/Apprenants/mettreAJourProfil").replace(
   queryParameters: {
     'matricule': matricule,
     'secteur': secteur,
@@ -130,10 +130,39 @@ class ApprenantService {
   },
 );
 
-
     final response = await http.put(uri);
     if (response.statusCode != 200) {
       throw Exception('Erreur lors de la mise à jour du profil');
     }
   }
+
+
+static Future<Map<String, dynamic>> ajouterApprenantIndependant({
+  required String nomUser,
+  required String secteur,
+  required List<String> metiers,
+  required String niveau,
+  required String email,
+}) async {
+  final url = Uri.parse("$baseUrl/independant");
+  final response = await http.post(
+    url,
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "nom_user": nomUser,
+      "secteur": secteur,
+      "metiers": metiers,
+      "email": email,
+      "niveau": niveau,
+    }),
+  );
+
+  if (response.statusCode == 201) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Erreur lors de l'inscription indépendante");
+  }
+}
+
+  
 }

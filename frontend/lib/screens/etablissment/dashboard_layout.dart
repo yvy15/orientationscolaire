@@ -41,7 +41,9 @@ class _DashboardLayoutState extends State<DashboardLayout> {
               height: 160,
               child: Stack(
                 children: [
-                  CustomPaint(size: const Size(double.infinity, 160), painter: _HeaderPainter()),
+                  CustomPaint(
+                      size: const Size(double.infinity, 160),
+                      painter: _HeaderPainter()),
                   Positioned(
                     left: 20,
                     right: 20,
@@ -68,7 +70,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF4A00E0),
+                              color: Color(0xFF005F73), // bleu foncé du thème
                             ),
                           ),
                         ),
@@ -116,7 +118,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+              colors: [Color(0xFF00C9A7), Color(0xFF005F73)], // bleu–turquoise
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -170,15 +172,17 @@ class _HeaderPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+        colors: [Color(0xFF00C9A7), Color(0xFF005F73)], // bleu–turquoise
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
     Path path = Path();
     path.lineTo(0, size.height * 0.75);
-    path.quadraticBezierTo(size.width * 0.25, size.height, size.width * 0.5, size.height * 0.85);
-    path.quadraticBezierTo(size.width * 0.75, size.height * 0.7, size.width, size.height * 0.85);
+    path.quadraticBezierTo(
+        size.width * 0.25, size.height, size.width * 0.5, size.height * 0.85);
+    path.quadraticBezierTo(
+        size.width * 0.75, size.height * 0.7, size.width, size.height * 0.85);
     path.lineTo(size.width, 0);
     path.close();
 

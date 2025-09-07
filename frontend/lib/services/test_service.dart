@@ -175,4 +175,6 @@ Ne retourne que du JSON valide et uniquement en français.
     // Retourner les résultats pour l'affichage
     return resultats;
   }
+
+  
 }

@@ -83,4 +83,26 @@ public ResponseEntity<?> mettreAJourProfil(
 }
 
 
+
+//  Ajouter un apprenant indépendant
+@PostMapping("/independant")
+public ResponseEntity<?> ajouterApprenantIndependant(
+        @RequestParam String nom_user,
+        @RequestParam String secteur,
+        @RequestParam String niveau,
+        @RequestParam String email,
+        @RequestBody List<String> metiers) {
+        System.out.println("apprenant nest pas ajouter");
+    try {
+        Apprenant apprenant = apprenantService.ajouterApprenantIndependant(nom_user, secteur, niveau, metiers, email);
+        System.out.println("Apprenant indépendant ajouté : " + apprenant);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apprenant);
+    } catch (Exception e) {
+        System.out.println("Erreur lors de l’ajout de l’apprenant indépendant : " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Erreur lors de l’enregistrement de l’apprenant indépendant : " + e.getMessage());
+    }
+}
+
+
 }

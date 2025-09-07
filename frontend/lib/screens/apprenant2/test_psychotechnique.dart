@@ -307,22 +307,7 @@ Ne retourne que le format valide et uniquement en francais et parsable
                 Navigator.pop(context);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Modifier son secteur'),
-              onTap: () {
-               
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Historique des tests'),
-              onTap: () {
-              
-                Navigator.pop(context);
-              },
-            ),
+
           ],
         ),
       ),
