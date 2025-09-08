@@ -1,10 +1,11 @@
+
 class Matiere {
-  final int id;
+  final int? id;
   final String nom;
   final int? idFiliere;
 
   Matiere({
-    required this.id,
+    this.id,
     required this.nom,
     required this.idFiliere,
   });
@@ -18,10 +19,14 @@ class Matiere {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final Map<String, dynamic> data = {
+      // Correction ici: Utiliser 'id_filiere' pour correspondre au backend
       'nom': nom,
       'id_filiere': idFiliere,
     };
+    if (id != null) {
+      data['id'] = id;
+    }
+    return data;
   }
 }

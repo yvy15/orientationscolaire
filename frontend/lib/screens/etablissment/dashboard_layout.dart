@@ -6,6 +6,7 @@ import 'dashboard_filieres.dart';
 import 'ajouter_apprenant.dart';
 import 'ajouter_note.dart';
 import 'dashboardStatistique.dart';
+import 'dashboard_matieres.dart';
 
 class DashboardLayout extends StatefulWidget {
   final Utilisateur utilisateur;
@@ -30,6 +31,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       DashboardFilieres(),
       DashboardStatistique(),
       DashboardClasses(),
+      DashboardMatieres(),
     ];
 
     return Scaffold(
@@ -109,6 +111,11 @@ class _DashboardLayoutState extends State<DashboardLayout> {
               leading: const Icon(Icons.school),
               title: const Text('Gérer vos classes'),
               onTap: () => _setPage(5),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bookmarks_outlined),
+              title: const Text('Gérer vos matieres'),
+              onTap: () => _setPage(6),
             ),
           ],
         ),

@@ -1,3 +1,4 @@
+package com.recommandation.OrientationScolaire.Packages;
 
 import lombok.Data;
 import java.util.List;

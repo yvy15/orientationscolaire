@@ -3,6 +3,7 @@ package com.recommandation.OrientationScolaire.Controllers;
 import com.recommandation.OrientationScolaire.Models.Matiere;
 import com.recommandation.OrientationScolaire.Services.MatiereService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,12 @@ public class MatiereController {
     @PostMapping
     public Matiere createMatiere(@RequestBody Matiere matiere) {
         return matiereService.saveMatiere(matiere);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Matiere> updateMatiere(@PathVariable Long id, @RequestBody Matiere matiereDetails) {
+        Matiere updatedMatiere = matiereService.updateMatiere(id, matiereDetails);
+        return ResponseEntity.ok(updatedMatiere);
     }
 
     @DeleteMapping("/{id}")
