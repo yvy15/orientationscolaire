@@ -45,6 +45,7 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(utilisateur);
         System.out.println("utiiutilisateur trouver "+utilisateur.getId().intValue());
+         System.out.println("statut du profil "+ utilisateur.isEstComplet());
         return new AuthResponse(
                 token,
                 utilisateur.getNom_user(),

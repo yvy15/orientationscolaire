@@ -137,7 +137,21 @@ public Apprenant ajouterApprenantIndependant(String nom_user , String secteur, S
     // 🔹 Associer à l'utilisateur existant
     Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
             .orElseThrow(() -> new Exception("Utilisateur non trouvé avec email : " + email));
+
+    utilisateur.setEstComplet(true);
     apprenant.setUtilisateur(utilisateur);
+
+
+     // Mettre à jour le statut du profil de l'utilisateur
+    utilisateur.setEstComplet(true);
+
+    // Enregistrer l'utilisateur mis à jour
+    utilisateurRepository.save(utilisateur);
+
+    apprenant.setUtilisateur(utilisateur);
+    apprenant.setSecteur_activite(secteur);
+    apprenant.setNiveau(niveau);
+    apprenant.setListeMetiers(metiers);
 
     return apprenantRepository.save(apprenant);
 }

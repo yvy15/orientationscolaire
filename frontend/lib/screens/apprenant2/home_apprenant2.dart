@@ -4,6 +4,7 @@ import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/apprenant2/test_psychotechnique.dart';
 import 'package:frontend/services/test_service.dart';
 import 'package:frontend/services/ApprenantService.dart';
+import 'dart:async'; // Ajout de l'import pour utiliser Timer
 
 class HomeApprenant1 extends StatefulWidget {
   final Utilisateur utilisateur;
@@ -14,11 +15,9 @@ class HomeApprenant1 extends StatefulWidget {
   });
 
   @override
-  // La méthode createState est mise à jour pour pointer vers la nouvelle classe d'état publique
   State<HomeApprenant1> createState() => HomeApprenant1State();
 }
 
-// J'ai retiré l'underscore de la classe pour la rendre publique
 class HomeApprenant1State extends State<HomeApprenant1>
     with SingleTickerProviderStateMixin {
   String? selectedSecteur;
@@ -39,6 +38,8 @@ class HomeApprenant1State extends State<HomeApprenant1>
     "Apprends et réussis 📚",
   ];
   int sloganIndex = 0;
+  // Déclaration du Timer pour l'animation des slogans
+  late Timer _sloganTimer;
 
   final List<String> secteurs = [
     'Informatique',
@@ -310,20 +311,26 @@ class HomeApprenant1State extends State<HomeApprenant1>
         _controller.forward();
       }
     });
-    Future.delayed(const Duration(seconds: 4), changerSlogan);
+
+    // Initialise le Timer pour l'animation des slogans
+    _sloganTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      // Ajout de la vérification `mounted` pour éviter l'erreur
+      if (mounted) {
+        setState(() => sloganIndex = (sloganIndex + 1) % slogans.length);
+        _controller.forward(from: 0);
+      }
+    });
   }
 
   @override
   void dispose() {
+    // Annule le timer pour éviter la fuite de mémoire
+    _sloganTimer.cancel();
     _controller.dispose();
     super.dispose();
   }
-
-  void changerSlogan() {
-    setState(() => sloganIndex = (sloganIndex + 1) % slogans.length);
-    _controller.forward(from: 0);
-    Future.delayed(const Duration(seconds: 4), changerSlogan);
-  }
+  // La méthode changerSlogan a été fusionnée avec la logique du Timer dans initState()
+  // Vous pouvez la supprimer ou la laisser comme un vestige de l'ancien code.
 
   Future<void> verifierProfilComplet() async {
     try {
@@ -335,19 +342,21 @@ class HomeApprenant1State extends State<HomeApprenant1>
         niveau: '',
         matricule: '',
       );
-      setState(() {
-        estProfilComplet = data['complet'];
-        selectedSecteur = data['secteur'];
-        selectedMetiers = List<String>.from(data['metiers'] ?? []);
-        niveau = data['niveau'];
-        niveauController.text = niveau ?? '';
-      });
+      // Ajout de la vérification `mounted`
+      if (mounted) {
+        setState(() {
+          estProfilComplet = data['complet'];
+          selectedSecteur = data['secteur'];
+          selectedMetiers = List<String>.from(data['metiers'] ?? []);
+          niveau = data['niveau'];
+          niveauController.text = niveau ?? '';
+        });
+      }
     } catch (e) {
       print("Erreur lors de la vérification du profil : $e");
     }
   }
 
-  // J'ai renommé les méthodes en privé pour plus de cohérence
   void _ouvrirPopupProfil() {
     showDialog(
       context: context,
@@ -463,18 +472,23 @@ class HomeApprenant1State extends State<HomeApprenant1>
                               metiers: metiersLocal,
                               email: widget.utilisateur.email,
                             );
-                            setState(() {
-                              selectedSecteur = secteurLocal;
-                              selectedMetiers = metiersLocal;
-                              niveau = niveauController.text.trim();
-                              estProfilComplet = true;
-                            });
-                            Navigator.pop(context);
-                            _ouvrirPopupMetiers();
+                            // S'assurer que le widget est toujours monté
+                            if (mounted) {
+                              setState(() {
+                                selectedSecteur = secteurLocal;
+                                selectedMetiers = metiersLocal;
+                                niveau = niveauController.text.trim();
+                                estProfilComplet = true;
+                              });
+                              Navigator.pop(context);
+                              _ouvrirPopupMetiers();
+                            }
                           } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Erreur : $e")),
-                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Erreur : $e")),
+                              );
+                            }
                           }
                         },
                         child: const Text(
@@ -573,7 +587,6 @@ class HomeApprenant1State extends State<HomeApprenant1>
     );
   }
 
-  // J'ai ajouté cette nouvelle méthode publique
   void startTestFromSidebar() {
     if (estProfilComplet) {
       _ouvrirPopupMetiers();

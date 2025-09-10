@@ -1,6 +1,7 @@
 package com.recommandation.OrientationScolaire.Controllers;
 
 import com.recommandation.OrientationScolaire.Models.Apprenant;
+import com.recommandation.OrientationScolaire.Packages.ApprenantIndependantRequest;
 import com.recommandation.OrientationScolaire.Packages.ApprenantRequest;
 import com.recommandation.OrientationScolaire.Services.ApprenantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,15 +87,10 @@ public ResponseEntity<?> mettreAJourProfil(
 
 //  Ajouter un apprenant indépendant
 @PostMapping("/independant")
-public ResponseEntity<?> ajouterApprenantIndependant(
-        @RequestParam String nom_user,
-        @RequestParam String secteur,
-        @RequestParam String niveau,
-        @RequestParam String email,
-        @RequestBody List<String> metiers) {
-        System.out.println("apprenant nest pas ajouter");
+       public ResponseEntity<?> ajouterApprenantIndependant (@RequestBody  ApprenantIndependantRequest request){
+        System.out.println("apprenant nest pas ajouter: " + request);
     try {
-        Apprenant apprenant = apprenantService.ajouterApprenantIndependant(nom_user, secteur, niveau, metiers, email);
+        Apprenant apprenant = apprenantService.ajouterApprenantIndependant(request.getNom_user(), request.getSecteur(), request.getNiveau(), request.getMetiers(), request.getEmail());
         System.out.println("Apprenant indépendant ajouté : " + apprenant);
         return ResponseEntity.status(HttpStatus.CREATED).body(apprenant);
     } catch (Exception e) {

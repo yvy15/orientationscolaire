@@ -86,21 +86,21 @@ class _TestPsychotechniqueScreenState extends State<TestPsychotechniqueScreen> {
         );
 
         final mistralData = jsonDecode(mistralResponse.body);
-       final content = mistralData['choices'][0]['message']['content'];
+        final content = mistralData['choices'][0]['message']['content'];
             print("Réponse Mistral brute:\n$content");
 
-String cleanContent = content.trim();
+        String cleanContent = content.trim();
 
-// Nettoyage
-int startIndex = cleanContent.indexOf('{');
-if (startIndex != -1) {
-  cleanContent = cleanContent.substring(startIndex);
-}
-cleanContent = cleanContent.replaceAll('```json', '');
-cleanContent = cleanContent.replaceAll('```', '');
+        // Nettoyage
+        int startIndex = cleanContent.indexOf('{');
+        if (startIndex != -1) {
+          cleanContent = cleanContent.substring(startIndex);
+        }
+        cleanContent = cleanContent.replaceAll('```json', '');
+        cleanContent = cleanContent.replaceAll('```', '');
 
-// Parsing
-final quizData = jsonDecode(cleanContent);
+        // Parsing
+        final quizData = jsonDecode(cleanContent);
 
 
         setState(() {
@@ -183,6 +183,7 @@ Ne retourne que du JSON valide et uniquement en français.
   required String secteur,
   required List<Map<String, dynamic>> questions,
   required Map<int, String> userAnswers,
+  required List<String> metiers,
 }) async {
   // 🔍 Reconstruction des réponses sous forme : question → texte réponse
   final Map<String, String> reponses = {};
@@ -197,37 +198,46 @@ Ne retourne que du JSON valide et uniquement en français.
     }
   }
 
+  String metiersList = metiers.where((m) => m != null && m.isNotEmpty).join(', ');
+
+  // 🧠 Construction du prompt
+// ...existing code...
   // 🧠 Construction du prompt
   final mistralPrompt = """
 Voici les réponses d’un utilisateur à un test psychotechnique dans le secteur $secteur :
 
 ${jsonEncode(reponses)}
 
-Analyse et retourne un graphique JSON des scores par métiers sélectionnés au départ, affiche également des scores en pourcentages en fonction des réponses et métiers,
-propose 3 carrières adaptées au secteur $secteur, 2 filières adaptées aux métiers, et si son score est en dessous de la moyenne
-il faut proposer 3 alternatives de métiers qu’il peut exercer ou étudier en fonction de son secteur d’activité sélectionné.
+Analyse ces réponses et calcule un score en pourcentage pour chacun des métiers suivants uniquement : $metiersList.
+Pour chaque métier, indique le pourcentage d’adéquation (0 à 100%) et une appréciation parmi : 
+- 80–100% → Très adapté
+- 60–79% → Adapté
+- 40–59% → Peu adapté
+- 0–39% → Non adapté
 
-Format attendu :
+Ne prends en compte que ces métiers, pas d’autres.
+
+Retourne aussi :
+- 3 recommandations de carrières adaptées au secteur $secteur,
+- 2 filières adaptées à ces métiers,
+- Si un score est en dessous de la moyenne, propose 3 alternatives de métiers dans le secteur,
+- Donne des conseils personnalisés pour progresser.
+
+Format attendu :
 
 {
   "scores": {
-    "metier1": 80–100% → Très adapté,
-    "metier2": 60–79% → Adapté,
-    "metier3": 40–59% → Peu adapté,
-    "metier4": 0–39% → Non adapté
-    
+    "metier1": {"pourcentage": 85, "niveau": "Très adapté"},
+    "metier2": {"pourcentage": 62, "niveau": "Adapté"},
+    "metier3": {"pourcentage": 45, "niveau": "Peu adapté"}
   },
-  "graph": {
-    "metier1": "...",
-    "metier2": "...",
-    "metier3": "..."
-  },
+  
   "recommandations": [
     "...",
     "...",
     "..."
   ],
-   "filieres": [
+  "filieres": [
     "...",
     "..."
   ],
@@ -236,10 +246,14 @@ Format attendu :
     "...",
     "..."
   ],
- 
+  "conseils": [
+    "...",
+    "..."
+  ]
 }
-Ne retourne que le format valide et uniquement en francais et parsable 
+Ne retourne que du JSON valide, parsable et uniquement en français.
 """;
+// ...existing code...;
 
   // 🚀 Appel à l’API Mistral
   final mistralResponse = await http.post(
@@ -357,6 +371,7 @@ Ne retourne que le format valide et uniquement en francais et parsable
                           secteur: widget.secteur ?? '',
                           questions: questions,
                           userAnswers: reponsesUtilisateur,
+                          metiers: widget.metiers 
                         );
 
                         setState(() {

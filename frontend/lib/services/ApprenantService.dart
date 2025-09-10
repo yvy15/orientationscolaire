@@ -163,6 +163,4 @@ static Future<Map<String, dynamic>> ajouterApprenantIndependant({
     throw Exception("Erreur lors de l'inscription indépendante");
   }
 }
-
-  
 }
