@@ -84,11 +84,10 @@ public ResponseEntity<?> mettreAJourProfil(
 }
 
 
-
 //  Ajouter un apprenant indépendant
 @PostMapping("/independant")
        public ResponseEntity<?> ajouterApprenantIndependant (@RequestBody  ApprenantIndependantRequest request){
-        System.out.println("apprenant nest pas ajouter: " + request);
+        System.out.println("apprenant Idependant n'est pas ajouter: " + request);
     try {
         Apprenant apprenant = apprenantService.ajouterApprenantIndependant(request.getNom_user(), request.getSecteur(), request.getNiveau(), request.getMetiers(), request.getEmail());
         System.out.println("Apprenant indépendant ajouté : " + apprenant);

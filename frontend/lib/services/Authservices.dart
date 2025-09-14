@@ -66,7 +66,8 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> inscrire(String nomUser, String email, String motPasse, String role) async {
+  Future<Map<String, dynamic>> inscrire(String nomUser, String email, 
+                        String motPasse, String role) async {
     final url = Uri.parse('$baseUrl/inscrire');
 
     try {

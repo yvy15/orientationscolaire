@@ -231,7 +231,6 @@ Format attendu :
     "metier2": {"pourcentage": 62, "niveau": "Adapté"},
     "metier3": {"pourcentage": 45, "niveau": "Peu adapté"}
   },
-  
   "recommandations": [
     "...",
     "...",

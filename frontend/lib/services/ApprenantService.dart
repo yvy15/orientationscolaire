@@ -120,7 +120,7 @@ class ApprenantService {
     required int id,
   }) async {
     
-    final uri = Uri.parse("${ApiConfig.baseUrl}/Apprenants/mettreAJourProfil").replace(
+    final uri = Uri.parse("${ApiConfig.baseUrl}/apprenants/mettreAJourProfil").replace(
   queryParameters: {
     'matricule': matricule,
     'secteur': secteur,

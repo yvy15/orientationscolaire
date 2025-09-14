@@ -89,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Text(
-                          "Welcome Back,",
+                          "Bienvenue",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 22,
@@ -97,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         Text(
-                          "Log In!",
+                          "Se connecter",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 32,
@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     AppTextFormField(
                       controller: emailController,
-                      labelText: "Email Address",
+                      labelText: "Email",
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       validator: (value) {
@@ -137,7 +137,7 @@ class _LoginPageState extends State<LoginPage> {
                         return AppTextFormField(
                           obscureText: passwordObscure,
                           controller: passwordController,
-                          labelText: "Password",
+                          labelText: "Mot de passe",
                           textInputAction: TextInputAction.done,
                           keyboardType: TextInputType.visiblePassword,
                           validator: (value) {
@@ -170,13 +170,14 @@ class _LoginPageState extends State<LoginPage> {
                             Icon(Icons.check_circle,
                                 size: 18, color: Colors.teal),
                             SizedBox(width: 6),
-                            Text("Remember me"),
+                            Text("se souvenir de moi",
+                                style: TextStyle(color: Colors.grey)),
                           ],
                         ),
                         TextButton(
                           onPressed: () {},
                           child: const Text(
-                            "Forgot password?",
+                            "oublié le mot de passe?",
                             style: TextStyle(color: Colors.grey),
                           ),
                         ),
@@ -217,7 +218,7 @@ class _LoginPageState extends State<LoginPage> {
                                   minHeight: 50,
                                 ),
                                 child: const Text(
-                                  "Log in",
+                                  "Se connecter",
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.white),
                                 ),
@@ -238,13 +239,13 @@ class _LoginPageState extends State<LoginPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Don’t have an account? "),
+                const Text("Vous n'avez pas de compte?"),
                 TextButton(
                   onPressed: () => NavigationHelper.pushReplacementNamed(
                     AppRoutes.register,
                   ),
                   child: const Text(
-                    "Register Now",
+                    "S'inscrire",
                     style: TextStyle(color: Color(0xFF005F73)),
                   ),
                 ),

@@ -94,7 +94,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Hello,",
+                      "Bienvenue",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -102,7 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     SizedBox(height: 6),
                     Text(
-                      "Sign Up!",
+                      "S'inscrire",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 32,
@@ -234,10 +234,10 @@ class _RegisterPageState extends State<RegisterPage> {
                           value: 'Apprenant2',
                           child: Text('Apprenant indépendant'),
                         ),
-                        DropdownMenuItem(
+                        /*DropdownMenuItem(
                           value: 'Admin',
                           child: Text('Admin'),
-                        ),
+                        ),*/
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -276,7 +276,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             alignment: Alignment.center,
                             height: 50,
                             child: const Text(
-                              "Sign Up",
+                              "S'inscrire",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,

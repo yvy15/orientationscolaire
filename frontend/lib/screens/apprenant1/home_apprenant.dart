@@ -546,6 +546,7 @@ class HomeApprenantState extends State<HomeApprenant>
                             );
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur lors de la mise à jour du profil: $e')));
+                                print('Erreur lors de la mise à jour du profil: $e');
                           }
                         }
                             : null, // bouton désactivé

@@ -46,5 +46,4 @@ public class Test_psychotechnique{
     private Apprenant apprenant;
 
 
-    
 }

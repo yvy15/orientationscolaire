@@ -31,7 +31,7 @@ public class TestPsychotechniqueController {
     private final UtilisateurRepository utilisateurRepository;
     private final ApprenantRepository apprenantRepository;
     private final EtablissementRepository etablissementRepository;
-    private final Test_psychotechniqueRepository testPsychotechniqueRepository; // ✅ Injection du repository
+    private final Test_psychotechniqueRepository testPsychotechniqueRepository;
 
     @PostMapping("/soumettre")
     public ResponseEntity<String> soumettreTest(@RequestBody TestRequest testRequest) {
@@ -50,7 +50,6 @@ public class TestPsychotechniqueController {
         apprenant.setUtilisateur(utilisateur);
         apprenant.setMatricule(testRequest.getMatricule());
 
-        // ✅ Récupération de l'objet Etablissement depuis la base
         Optional<Etablissement> etabOpt = etablissementRepository.findByNom(testRequest.getNomEtablissement());
         if (etabOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("Établissement non trouvé : " + testRequest.getNomEtablissement());
@@ -59,13 +58,16 @@ public class TestPsychotechniqueController {
 
         apprenantRepository.save(apprenant);
 
-        // Marquer le profil comme complet
         utilisateur.setEstComplet(true);
         utilisateurRepository.save(utilisateur);
 
         return ResponseEntity.ok("Données de l'apprenant enregistrées avec succès");
     }
 
+    /**
+     * Cette méthode vérifie si le profil d'un apprenant est complet.
+     * Elle ne retourne plus les métiers en dur.
+     */
     @GetMapping("/estComplet/{email}")
     public ResponseEntity<?> estProfilComplet(@PathVariable String email) {
         Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
@@ -81,19 +83,14 @@ public class TestPsychotechniqueController {
         Apprenant apprenant = apprenantOpt.get();
         boolean complet = apprenant.getSecteur_activite() != null;
 
-        Map<String, List<String>> metiersParSecteur = Map.of(
-                "Informatique", List.of("Développeur", "Analyste de données", "Technicien Réseau"),
-                "Santé", List.of("Médecin", "Infirmier", "Pharmacien"),
-                "Éducation", List.of("Enseignant", "Conseiller pédagogique", "Surveillant")
-        );
+        // Ancien code pour les métiers en dur, maintenant supprimé.
+        // String secteur = apprenant.getSecteur_activite();
+        // List<String> metiers = metiersParSecteur.getOrDefault(secteur, List.of());
 
-        String secteur = apprenant.getSecteur_activite();
-        List<String> metiers = metiersParSecteur.getOrDefault(secteur, List.of());
-
+        // La réponse ne contient plus la liste des métiers hardcodée.
         return ResponseEntity.ok(Map.of(
-                "complet", complet,
-                "secteur", secteur,
-                "metiers", metiers
+            "complet", complet,
+            "secteur", apprenant.getSecteur_activite()
         ));
     }
 
@@ -132,7 +129,7 @@ public class TestPsychotechniqueController {
         apprenant.setAutreMetier(autreMetier);
         apprenant.setListeMetiers(metiers);
 
-        // ✅ Récupération de l'objet Etablissement
+        // Récupération de l'objet Etablissement
         Optional<Etablissement> etabOpt = etablissementRepository.findByNom(etablissementNom);
         if (etabOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("Établissement non trouvé : " + etablissementNom);
@@ -148,78 +145,74 @@ public class TestPsychotechniqueController {
     }
 
 
-/**
+    /**
      * Enregistre un test psychotechnique complet avec questions, réponses et résultats.
      */
-@PostMapping("/enregistrerTest")
-public ResponseEntity<String> enregistrerTest(@RequestBody Map<String, Object> data) {
-    try {
+    @PostMapping("/enregistrerTest")
+    public ResponseEntity<String> enregistrerTest(@RequestBody Map<String, Object> data) {
+        try {
 
-           System.out.println("ici");
+            System.out.println("ici");
 
-        // 🔎 Récupérer l'objet utilisateur du JSON
-        Map<String, Object> utilisateurMap = (Map<String, Object>) data.get("utilisateur");
+            // Récupérer l'objet utilisateur du JSON
+            Map<String, Object> utilisateurMap = (Map<String, Object>) data.get("utilisateur");
 
-        if (utilisateurMap == null || utilisateurMap.get("email") == null) {
-            return ResponseEntity.badRequest().body("❌ Email utilisateur non fourni dans la requête");
-        }
-
-        String email = utilisateurMap.get("email").toString();
-        System.out.println("Email utilisateur reçu : " + email);
-
-        // 🔎 Rechercher l’utilisateur par email
-        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
-        if (utilisateurOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("❌ Aucun utilisateur trouvé avec l’email " + email);
-        }
-
-        Utilisateur utilisateur = utilisateurOpt.get();
-
-        // 🔎 Rechercher l’apprenant lié à cet utilisateur
-        Optional<Apprenant> apprenantOpt = apprenantRepository.findByUtilisateurId(utilisateur.getId());
-        if (apprenantOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("❌ Aucun apprenant lié à l’utilisateur avec l’email " + email);
-        }
-
-        Apprenant apprenant = apprenantOpt.get();
-        System.out.println("Apprenant trouvé : matricule = " + apprenant.getMatricule());
-
-        // 📝 Créer l'objet Test_psychotechnique
-        Test_psychotechnique test = new Test_psychotechnique();
-        test.setApprenant(apprenant);
-        test.setSecteur((String) data.get("secteur"));
-
-        // ✅ Conversion sécurisée des métiers
-        Object metiersObj = data.get("metiers");
-        List<String> metiers = new ArrayList<>();
-        if (metiersObj instanceof List<?>) {
-            for (Object obj : (List<?>) metiersObj) {
-                metiers.add(String.valueOf(obj));
+            if (utilisateurMap == null || utilisateurMap.get("email") == null) {
+                return ResponseEntity.badRequest().body("❌ Email utilisateur non fourni dans la requête");
             }
+
+            String email = utilisateurMap.get("email").toString();
+            System.out.println("Email utilisateur reçu : " + email);
+
+            // Rechercher l’utilisateur par email
+            Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
+            if (utilisateurOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body("❌ Aucun utilisateur trouvé avec l’email " + email);
+            }
+
+            Utilisateur utilisateur = utilisateurOpt.get();
+
+            // Rechercher l’apprenant lié à cet utilisateur
+            Optional<Apprenant> apprenantOpt = apprenantRepository.findByUtilisateurId(utilisateur.getId());
+            if (apprenantOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body("❌ Aucun apprenant lié à l’utilisateur avec l’email " + email);
+            }
+
+            Apprenant apprenant = apprenantOpt.get();
+            System.out.println("Apprenant trouvé : matricule = " + apprenant.getMatricule());
+
+            // Créer l'objet Test_psychotechnique
+            Test_psychotechnique test = new Test_psychotechnique();
+            test.setApprenant(apprenant);
+            test.setSecteur((String) data.get("secteur"));
+
+            // Conversion sécurisée des métiers
+            Object metiersObj = data.get("metiers");
+            List<String> metiers = new ArrayList<>();
+            if (metiersObj instanceof List<?>) {
+                for (Object obj : (List<?>) metiersObj) {
+                    metiers.add(String.valueOf(obj));
+                }
+            }
+            test.setMetiers(metiers);
+
+            // Stocker les JSON
+            test.setQuestionsJson((String) data.get("questionsJson"));
+            test.setReponsesJson((String) data.get("reponsesJson"));
+            test.setResultatsJson((String) data.get("resultatsJson"));
+
+            // Date de passage
+            test.setDatePassage(LocalDateTime.now());
+
+            // Enregistrer en BDD
+            testPsychotechniqueRepository.save(test);
+
+            return ResponseEntity.ok("✅ Test enregistré avec succès pour l’apprenant " + apprenant.getMatricule());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("❌ Erreur lors de l'enregistrement du test : " + e.getMessage());
         }
-        test.setMetiers(metiers);
-
-        // ✅ Stocker les JSON
-        test.setQuestionsJson((String) data.get("questionsJson"));
-        test.setReponsesJson((String) data.get("reponsesJson"));
-        test.setResultatsJson((String) data.get("resultatsJson"));
-
-        // ✅ Date de passage
-        test.setDatePassage(LocalDateTime.now());
-
-        // ✅ Enregistrer en BDD
-        testPsychotechniqueRepository.save(test);
-
-        return ResponseEntity.ok("✅ Test enregistré avec succès pour l’apprenant " + apprenant.getMatricule());
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("❌ Erreur lors de l'enregistrement du test : " + e.getMessage());
     }
 }
-
-
-
-}
- 
