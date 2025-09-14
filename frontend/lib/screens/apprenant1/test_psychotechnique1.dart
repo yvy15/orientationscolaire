@@ -70,10 +70,13 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
       "nomEtablissement": widget.nomEtablissement,
       "matricule": widget.matricule,
     };
+    print("ici body: $body");
+
 
     try {
       if (estComplet == true) {
         await _genererQuestionsDepuisMistral();
+         print("Utilisateur complet, génération locale des questions.");
       } else {
         final backendResponse = await http.post(
           Uri.parse("${ApiConfig.baseUrl}/test/soumettre"),
@@ -154,63 +157,119 @@ Ne retourne que du JSON valide et uniquement en français.
     required Map<int, String> userAnswers,
     required Utilisateur utilisateur,
   }) async {
-    final Map<String, String> reponses = {};
-    for (int i = 0; i < questions.length; i++) {
-      final question = questions[i]['question'];
-      final selectedOption = userAnswers[i];
-      final optionText = questions[i]['options'][selectedOption]?['text'];
-      if (question != null && optionText != null) {
-        reponses[question] = optionText;
-      }
-    }
 
-    final mistralPrompt = """
+    
+   // 🔍 Reconstruction des réponses sous forme : question → texte réponse
+  final Map<String, String> reponses = {};
+
+  for (int i = 0; i < questions.length; i++) {
+    final question = questions[i]['question'];
+    final selectedOption = userAnswers[i];
+    final optionText = questions[i]['options'][selectedOption]?['text'];
+
+    if (question != null && optionText != null) {
+      reponses[question] = optionText;
+    }
+  }
+
+  String metiersList = metiers.where((m) => m != null && m.isNotEmpty).join(', ');
+
+  // 🧠 Construction du prompt
+// ...existing code...
+  // 🧠 Construction du prompt
+  final mistralPrompt = """
 Voici les réponses d’un utilisateur à un test psychotechnique dans le secteur $secteur :
+
 ${jsonEncode(reponses)}
-Analyse et retourne un JSON des scores par métiers, 3 carrières adaptées, 2 filières, 3 alternatives si score faible.
+
+Analyse ces réponses et calcule un score en pourcentage pour chacun des métiers suivants uniquement : $metiersList.
+Pour chaque métier, indique le pourcentage d’adéquation (0 à 100%) et une appréciation parmi : 
+- 80–100% → Très adapté
+- 60–79% → Adapté
+- 40–59% → Peu adapté
+- 0–39% → Non adapté
+
+Ne prends en compte que ces métiers, pas d’autres.
+
+Retourne aussi :
+- 3 recommandations de carrières adaptées au secteur $secteur,
+- 2 filières adaptées à ces métiers,
+- Si un score est en dessous de la moyenne, propose 3 alternatives de métiers dans le secteur,
+- Donne des conseils personnalisés pour progresser.
+
+Format attendu :
+
+{
+  "scores": {
+    "metier1": {"pourcentage": 85, "niveau": "Très adapté"},
+    "metier2": {"pourcentage": 62, "niveau": "Adapté"},
+    "metier3": {"pourcentage": 45, "niveau": "Peu adapté"}
+  },
+  "recommandations": [
+    "...",
+    "...",
+    "..."
+  ],
+  "filieres": [
+    "...",
+    "..."
+  ],
+  "alternatives": [
+    "...",
+    "...",
+    "..."
+  ],
+  "conseils": [
+    "...",
+    "..."
+  ]
+}
+Ne retourne que du JSON valide, parsable et uniquement en français.
 """;
+// ...existing code...;
 
-    final mistralResponse = await http.post(
-      Uri.parse("https://api.mistral.ai/v1/chat/completions"),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer oPrGB2UPZBr4uWldQQ5uuP2Yx5d8iizw',
-      },
-      body: jsonEncode({
-        "model": "mistral-tiny",
-        "messages": [
-          {"role": "user", "content": mistralPrompt}
-        ],
-      }),
-    );
+  // 🚀 Appel à l’API Mistral
+  final mistralResponse = await http.post(
+    Uri.parse("https://api.mistral.ai/v1/chat/completions"),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer oPrGB2UPZBr4uWldQQ5uuP2Yx5d8iizw',
+    },
+    body: jsonEncode({
+      "model": "mistral-tiny",
+      "messages": [
+        {"role": "user", "content": mistralPrompt}
+      ],
+    }),
+  );
 
-    if (mistralResponse.statusCode != 200) {
-      throw Exception("Erreur Mistral : ${mistralResponse.statusCode}");
-    }
-
+  if (mistralResponse.statusCode == 200) {
     final content = jsonDecode(mistralResponse.body);
     final message = content['choices'][0]['message']['content'];
 
-    late Map<String, dynamic> resultats;
     try {
-      resultats = jsonDecode(message);
+      
+        final test = TestPsychotechnique(
+          matricule: matricule,
+          secteur: secteur,
+          metiers: metiers,
+          questionsJson: jsonEncode(questions),
+          reponsesJson: jsonEncode(reponses),
+          resultatsJson: jsonEncode(resultats),
+          utilisateur: utilisateur,
+        );
+
+        await TestService.enregistrerTest(test);
+
+      return jsonDecode(message);
     } catch (e) {
       throw Exception("Réponse Mistral non parsable : $message");
     }
+  } else {
+    throw Exception("Erreur Mistral : ${mistralResponse.statusCode}");
+  }
 
-    final test = TestPsychotechnique(
-      matricule: matricule,
-      secteur: secteur,
-      metiers: metiers,
-      questionsJson: jsonEncode(questions),
-      reponsesJson: jsonEncode(reponses),
-      resultatsJson: jsonEncode(resultats),
-      utilisateur: utilisateur,
-    );
-
-    await TestService.enregistrerTest(test);
-
-    return resultats;
+    
   }
 
   @override
@@ -260,7 +319,7 @@ Analyse et retourne un JSON des scores par métiers, 3 carrières adaptées, 2 f
                       context: context,
                       builder: (context) {
                         return AlertDialog(
-                          title: const Text("Résultats du Test"),
+                          title: const Text("Résultats du Test Psychotechnique"),
                           content: SingleChildScrollView(
                             child: ResultatsDialogContent1(
                               resultats1: resultats!,

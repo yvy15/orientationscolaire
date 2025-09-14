@@ -23,6 +23,7 @@ dependencies:
   fl_chart: ^1.0.0
   syncfusion_flutter_charts: ^30.2.7
   file_picker: ^8.0.0
+  lottie: ^2.7.0
 
   #flutter_icons:
   #  path: ./flutter-icons
@@ -55,3 +56,8 @@ flutter:
     - assets/Copilot_20250904_052648.png
     - assets/image.png
     - assets/istockphoto.jpg
+    - assets/lottie/loading.json
+    - assets/lottie/Book Animation.json
+    - assets/lottie/education new color scheme.json
+    - assets/lottie/Search for value.json
+    - assets/lottie/abstract.json
