@@ -7,6 +7,7 @@ import 'package:frontend/services/test_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/Config/ApiConfig.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 
@@ -524,7 +525,11 @@ class HomeApprenantState extends State<HomeApprenant>
                               etablissement: etablissementLocal!,
                               id: widget.utilisateur.id,
                             );
+                             final prefs = await SharedPreferences.getInstance();
+       
+                              await prefs.setBool('estComplet', true);
                             setState(() {
+                              
                               selectedSecteur = secteurLocal;
                               selectedMetiers = metiersLocal;
                               nomEtablissement = etablissementLocal;

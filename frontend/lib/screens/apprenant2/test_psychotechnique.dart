@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/apprenant1/page_resultat1.dart';
 import 'package:frontend/screens/apprenant2/dashboard_layout.dart';
-import 'package:frontend/screens/apprenant2/page_resultat.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/Config/ApiConfig.dart';

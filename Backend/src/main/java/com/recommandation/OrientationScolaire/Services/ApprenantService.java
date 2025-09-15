@@ -112,8 +112,9 @@ public class ApprenantService {
         // Mettre à jour le profil
         apprenant.setSecteur_activite(secteur);
         apprenant.setUtilisateur(utilisateur);
+        utilisateur.setEstComplet(true); // Mettre à jour le statut du profil de l'utilisateur
         // Ici tu peux mettre à jour d'autres champs si nécessaire (ex: etablissement, metiers)
-
+        utilisateurRepository.save(utilisateur); // Enregistrer l'utilisateur mis à jour
         return apprenantRepository.save(apprenant);
     }
 

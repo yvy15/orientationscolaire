@@ -1,37 +1,59 @@
 import 'package:flutter/material.dart';
 
-class ResultatsDialogContent extends StatelessWidget {
-  final Map<String, dynamic> resultats;
-  final List<String> sousMetiersChoisis;
+class ResultatsDialogContent1 extends StatelessWidget {
+  final Map<String, dynamic> resultats1;
+  final List<String> sousMetiersChoisis1;
 
-  const ResultatsDialogContent({
+  const ResultatsDialogContent1({
     super.key,
-    required this.resultats,
-    required this.sousMetiersChoisis,
+    required this.resultats1,
+    required this.sousMetiersChoisis1,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scores = Map<String, dynamic>.from(resultats['scores'] ?? {});
-    final recommandations = List<String>.from(resultats['recommandations'] ?? []);
-    final filieres = List<String>.from(resultats['filieres'] ?? []);
-    final alternatives = List<String>.from(resultats['alternatives'] ?? []);
-    final conseils = resultats['conseils'];
+    // Parsing sécurisé
+    final scores = <String, dynamic>{};
+    if (resultats1['scores'] != null) {
+      try {
+        scores.addAll(Map<String, dynamic>.from(resultats1['scores']));
+      } catch (_) {}
+    }
+
+    final recommandations = resultats1['recommandations'] is List
+        ? List<String>.from(resultats1['recommandations'])
+        : [];
+
+    final filieres = resultats1['filieres'] is List
+        ? List<String>.from(resultats1['filieres'])
+        : [];
+
+    final alternatives = resultats1['alternatives'] is List
+        ? List<String>.from(resultats1['alternatives'])
+        : [];
+
+    final conseils = resultats1['conseils']?.toString();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("🔢 Scores par sous-métier :", style: TextStyle(fontWeight: FontWeight.bold)),
-        ...sousMetiersChoisis.map((metier) {
-          final rawScore = scores[metier] ?? '0';
-          final score = int.tryParse(rawScore.toString().split('%').first) ?? 0;
-
+        const Text("🔢 Scores par sous-métier :",
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        if (sousMetiersChoisis1.isEmpty) const Text("Aucun score disponible."),
+        ...sousMetiersChoisis1.map((metier) {
+          final scoreMap = scores[metier];
+          final score = (scoreMap is Map && scoreMap['pourcentage'] != null)
+              ? int.tryParse(scoreMap['pourcentage'].toString()) ?? 0
+              : 0;
+          final niveau =
+              (scoreMap is Map) ? scoreMap['niveau']?.toString() ?? '' : '';
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("$metier : $rawScore"),
+                Text(
+                    "$metier : ${score}%${niveau.isNotEmpty ? ', niveau: $niveau' : ''}"),
                 LinearProgressIndicator(
                   value: score / 100,
                   backgroundColor: Colors.grey.shade200,
@@ -41,21 +63,29 @@ class ResultatsDialogContent extends StatelessWidget {
               ],
             ),
           );
-        }),
+        }).toList(),
         const SizedBox(height: 12),
-        const Text("🎯 Carrières recommandées :", style: TextStyle(fontWeight: FontWeight.bold)),
-        ...recommandations.map((r) => Text("✅ $r")),
-        const SizedBox(height: 12),
-        const Text("📚 Filières suggérées :", style: TextStyle(fontWeight: FontWeight.bold)),
-        ...filieres.map((f) => Text("📘 $f")),
-        if (alternatives.isNotEmpty) ...[
+        if (recommandations.isNotEmpty) ...[
+          const Text("🎯 Carrières recommandées :",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          ...recommandations.map((r) => Text("✅ $r")),
           const SizedBox(height: 12),
-          const Text("🛑 Alternatives proposées :", style: TextStyle(fontWeight: FontWeight.bold)),
-          ...alternatives.map((a) => Text("🔄 $a")),
         ],
-        if (conseils != null) ...[
+        if (filieres.isNotEmpty) ...[
+          const Text("📚 Filières suggérées :",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          ...filieres.map((f) => Text("📘 $f")),
           const SizedBox(height: 12),
-          const Text("💡 Conseils d'amélioration :", style: TextStyle(fontWeight: FontWeight.bold)),
+        ],
+        if (alternatives.isNotEmpty) ...[
+          const Text("🛑 Alternatives proposées :",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          ...alternatives.map((a) => Text("🔄 $a")),
+          const SizedBox(height: 12),
+        ],
+        if (conseils != null && conseils.isNotEmpty) ...[
+          const Text("💡 Conseils d'amélioration :",
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Text(conseils),
         ],
       ],
