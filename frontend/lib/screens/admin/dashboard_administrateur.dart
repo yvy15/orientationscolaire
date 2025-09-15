@@ -1,40 +1,107 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/services/AdminStatsService.dart';
+import 'package:fl_chart/fl_chart.dart';
 
-class DashboardAdministrateur extends StatelessWidget {
+class DashboardAdministrateur extends StatefulWidget {
   const DashboardAdministrateur({super.key});
 
   @override
+  State<DashboardAdministrateur> createState() => _DashboardAdministrateurState();
+}
+
+class _DashboardAdministrateurState extends State<DashboardAdministrateur> {
+  late Future<Map<String, int>> statsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    statsFuture = AdminStatsService.getStats();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: GridView.count(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1.6, // Rendu plus compact
-        children: const [
-          CarteDashboard(
-            couleur: Color(0xFF1565C0),
-            icone: Icons.school,
-            titre: "Apprenants Scolarisés",
+    return FutureBuilder<Map<String, int>>(
+      future: statsFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final stats = snapshot.data!;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              // Diagramme circulaire pour les apprenants
+              Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      const Text(
+                        "Répartition des Apprenants",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      SizedBox(
+                        height: 180,
+                        child: PieChart(
+                          PieChartData(
+                            sections: [
+                              PieChartSectionData(
+                                value: (stats['scolarises'] ?? 0).toDouble(),
+                                color: Colors.blue,
+                                title: "Scolarisés",
+                                radius: 50,
+                                titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                              PieChartSectionData(
+                                value: (stats['independants'] ?? 0).toDouble(),
+                                color: Colors.orange,
+                                title: "Indépendants",
+                                radius: 50,
+                                titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                            sectionsSpace: 2,
+                            centerSpaceRadius: 30,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text("Total : ${(stats['scolarises'] ?? 0) + (stats['independants'] ?? 0)}"),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Stats sous forme de cards
+              GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1.6,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  CarteDashboard(
+                    couleur: const Color(0xFF2E7D32),
+                    icone: Icons.account_balance,
+                    titre: "Établissements",
+                    valeur: "${stats['etablissements'] ?? 0}",
+                  ),
+                  CarteDashboard(
+                    couleur: const Color(0xFF6A1B9A),
+                    icone: Icons.people,
+                    titre: "Total Utilisateurs",
+                    valeur: "${stats['utilisateurs'] ?? 0}",
+                  ),
+                ],
+              ),
+            ],
           ),
-          CarteDashboard(
-            couleur: Color(0xFFEF6C00),
-            icone: Icons.person_pin,
-            titre: "Apprenants Indépendants",
-          ),
-          CarteDashboard(
-            couleur: Color(0xFF2E7D32),
-            icone: Icons.account_balance,
-            titre: "Établissements",
-          ),
-          CarteDashboard(
-            couleur: Color(0xFF6A1B9A),
-            icone: Icons.people,
-            titre: "Total Utilisateurs",
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -43,12 +110,14 @@ class CarteDashboard extends StatelessWidget {
   final Color couleur;
   final IconData icone;
   final String titre;
+  final String valeur;
 
   const CarteDashboard({
     super.key,
     required this.couleur,
     required this.icone,
     required this.titre,
+    required this.valeur,
   });
 
   @override
@@ -72,6 +141,15 @@ class CarteDashboard extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              valeur,
+              style: const TextStyle(
+                fontSize: 22,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

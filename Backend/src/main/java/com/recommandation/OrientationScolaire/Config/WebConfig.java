@@ -26,6 +26,7 @@ public class WebConfig {
                         .requestMatchers("/api/matieres/**").permitAll()
                         .requestMatchers("/api/notes/**").permitAll()
                         .requestMatchers("/api/stats/**").permitAll()
+                        .requestMatchers("/api/admin/stats/**").permitAll()
                         .anyRequest().authenticated()
 
 

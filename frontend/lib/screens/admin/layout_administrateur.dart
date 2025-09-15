@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Importe ici tes pages, ou crée-les dans ce fichier si tu préfères
 import 'dashboard_administrateur.dart';
@@ -34,7 +35,14 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
 
   final Utilisateur utilisateur;
 
-  _LayoutAdministrateurState() : utilisateur = Utilisateur(token: '', nom_user: '', email: '', role: '', estComplet: false, id: 0);
+  _LayoutAdministrateurState()
+      : utilisateur = Utilisateur(
+            token: '',
+            nom_user: '',
+            email: '',
+            role: '',
+            estComplet: false,
+            id: 0);
 
   @override
   void initState() {
@@ -50,6 +58,17 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
     Navigator.of(context).pop(); // Ferme le drawer après sélection
   }
 
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Efface toutes les données de session
+    if (context.mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/login', // Mets ici le nom de ta route de connexion
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,11 +79,8 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Déconnexion',
-            onPressed: () {
-              // TODO: Ajouter logique de déconnexion
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Déconnexion en cours...')),
-              );
+            onPressed: () async {
+              await _logout(context);
             },
           ),
         ],
@@ -77,14 +93,19 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
             children: [
               UserAccountsDrawerHeader(
                 accountName: Text(
-                  utilisateur.nom_user.isNotEmpty ? utilisateur.nom_user : "Administrateur",
+                  utilisateur.nom_user.isNotEmpty
+                      ? utilisateur.nom_user
+                      : "Administrateur",
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                accountEmail: Text(utilisateur.email.isNotEmpty ? utilisateur.email : "admin@exemple.com"),
+                accountEmail: Text(utilisateur.email.isNotEmpty
+                    ? utilisateur.email
+                    : "admin@exemple.com"),
                 currentAccountPicture: const CircleAvatar(
                   backgroundImage: AssetImage("assets/img1.jpeg"),
                 ),
-                decoration: const BoxDecoration(color: Color.fromARGB(255, 2, 41, 51)),
+                decoration:
+                    const BoxDecoration(color: Color.fromARGB(255, 2, 41, 51)),
               ),
               _buildDrawerItem(
                 icon: Icons.dashboard,
@@ -105,6 +126,17 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
                 icon: Icons.work,
                 text: "Métiers & Filières",
                 index: 3,
+              ),
+              const Divider(color: Colors.white54),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white),
+                title: const Text(
+                  'Déconnexion',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  await _logout(context);
+                },
               ),
             ],
           ),
