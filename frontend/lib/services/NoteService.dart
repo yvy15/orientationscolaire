@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:frontend/Config/ApiConfig.dart';
 
 class NoteService {
-  final String baseUrl = "${ApiConfig.baseUrl}/notes";
+  static final String baseUrl = "${ApiConfig.baseUrl}/notes";
 
   Future<List<Map<String, dynamic>>> getNotes() async {
     final response = await http.get(Uri.parse(baseUrl));
@@ -42,4 +42,18 @@ class NoteService {
       throw Exception('Erreur lors de la suppression de la note');
     }
   }
+
+
+
+ static Future<Map<String, dynamic>> getNotesParTypeParMatiere(String matricule) async {
+    final response = await http.get(Uri.parse('$baseUrl/type-matiere/$matricule'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Erreur lors de la récupération des notes");
+    }
+  }
+
+
+
 }

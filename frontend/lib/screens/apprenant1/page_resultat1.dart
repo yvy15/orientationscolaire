@@ -11,8 +11,7 @@ class ResultatsDialogContent1 extends StatefulWidget {
     required this.resultats1,
     required this.sousMetiersChoisis1,
   });
-
-  @override
+@override
   State<ResultatsDialogContent1> createState() =>
       _ResultatsDialogContent1State();
 }
@@ -34,8 +33,7 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
     "Finalisation du rapport...",
   ];
   Timer? _loadingTimer;
-
-  @override
+@override
   void initState() {
     super.initState();
     _introController = AnimationController(
@@ -74,8 +72,7 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
           const Duration(milliseconds: 700), () => _fadeController.forward());
     });
   }
-
-  @override
+@override
   void dispose() {
     _introController.dispose();
     _scoreController.dispose();
@@ -83,8 +80,7 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
     _loadingTimer?.cancel();
     super.dispose();
   }
-
-  @override
+@override
   Widget build(BuildContext context) {
     final scores = <String, dynamic>{};
     if (widget.resultats1['scores'] != null) {
@@ -168,16 +164,18 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                             repeat: true,
                           ),
                           const SizedBox(width: 12),
-                          AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 700),
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF005F73),
-                              letterSpacing: 1.2,
+                          Expanded( // Added Expanded here for responsiveness
+                            child: AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 700),
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF005F73),
+                                letterSpacing: 1.2,
+                              ),
+                              child:
+                                  const Text("Résultats du Test Psychotechnique"),
                             ),
-                            child:
-                                const Text("Résultats du Test Psychotechnique"),
                           ),
                         ],
                       ),
@@ -198,14 +196,16 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                                 repeat: true,
                               ),
                               const SizedBox(width: 8),
-                              AnimatedDefaultTextStyle(
-                                duration: const Duration(milliseconds: 600),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0077B6),
+                              Expanded( // Added Expanded here for responsiveness
+                                child: AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 600),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0077B6),
+                                  ),
+                                  child: const Text("Scores par sous-métier"),
                                 ),
-                                child: const Text("Scores par sous-métier"),
                               ),
                             ],
                           ),
@@ -240,16 +240,18 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                                   children: [
                                     Row(
                                       children: [
-                                        AnimatedDefaultTextStyle(
-                                          duration:
-                                              const Duration(milliseconds: 500),
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF023E8A),
+                                        Expanded( // Added Expanded here for responsiveness
+                                          child: AnimatedDefaultTextStyle(
+                                            duration:
+                                                const Duration(milliseconds: 500),
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF023E8A),
+                                            ),
+                                            child: Text("$metier : " +
+                                                "${score}%${niveau.isNotEmpty ? ', niveau: $niveau' : ''}"),
                                           ),
-                                          child: Text("$metier : " +
-                                              "${score}%${niveau.isNotEmpty ? ', niveau: $niveau' : ''}"),
                                         ),
                                         const SizedBox(width: 8),
                                         AnimatedContainer(
@@ -265,7 +267,7 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                                                       Colors.green
                                                     ]
                                                   : score >= 60
-                                                      ? [
+                                                     ? [
                                                           Colors.lightGreen,
                                                           Colors.yellow
                                                         ]
@@ -319,7 +321,6 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                         ],
                       ),
                     ),
-                    // ...existing code for recommandations, filieres, alternatives, conseils...
                     const SizedBox(height: 24),
                     FadeTransition(
                       opacity: _fadeAnimation,
@@ -335,14 +336,16 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                                 repeat: true,
                               ),
                               const SizedBox(width: 8),
-                              AnimatedDefaultTextStyle(
-                                duration: const Duration(milliseconds: 600),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF009688),
+                              Expanded( // Added Expanded here for responsiveness
+                                child: AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 600),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF009688),
+                                  ),
+                                  child: const Text("Carrières recommandées"),
                                 ),
-                                child: const Text("Carrières recommandées"),
                               ),
                             ],
                           ),
@@ -404,14 +407,16 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                                 repeat: true,
                               ),
                               const SizedBox(width: 8),
-                              AnimatedDefaultTextStyle(
-                                duration: const Duration(milliseconds: 600),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF3A86FF),
+                              Expanded( // Added Expanded here for responsiveness
+                                child: AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 600),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF3A86FF),
+                                  ),
+                                  child: const Text("Filières suggérées"),
                                 ),
-                                child: const Text("Filières suggérées"),
                               ),
                             ],
                           ),
@@ -472,14 +477,16 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                                 repeat: true,
                               ),
                               const SizedBox(width: 8),
-                              AnimatedDefaultTextStyle(
-                                duration: const Duration(milliseconds: 600),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFF006E),
+                              Expanded( // Added Expanded here for responsiveness
+                                child: AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 600),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFF006E),
+                                  ),
+                                  child: const Text("Alternatives proposées"),
                                 ),
-                                child: const Text("Alternatives proposées"),
                               ),
                             ],
                           ),
@@ -506,9 +513,10 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                                         Icon(Icons.change_circle,
                                             color: Colors.pink, size: 20),
                                         const SizedBox(width: 8),
-                                        Text(a,
-                                            style:
-                                                const TextStyle(fontSize: 16)),
+                                        Expanded( // Added Expanded here for responsiveness
+                                          child: Text(a,
+                                              style: const TextStyle(fontSize: 16)),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -532,14 +540,16 @@ class _ResultatsDialogContent1State extends State<ResultatsDialogContent1>
                                 repeat: true,
                               ),
                               const SizedBox(width: 8),
-                              AnimatedDefaultTextStyle(
-                                duration: const Duration(milliseconds: 600),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFFC300),
+                              Expanded( // Added Expanded here for responsiveness
+                                child: AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 600),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFFC300),
+                                  ),
+                                  child: const Text("Conseils d'amélioration"),
                                 ),
-                                child: const Text("Conseils d'amélioration"),
                               ),
                             ],
                           ),

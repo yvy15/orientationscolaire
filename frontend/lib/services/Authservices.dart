@@ -3,6 +3,11 @@ import 'package:http/http.dart' as http;
 // import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/Config/ApiConfig.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/services/ApprenantService.dart';
+
+
+
 
 
 class AuthService {
@@ -36,6 +41,16 @@ class AuthService {
         if (token == null || nomUser == null || email == null || role == null || estComplet == null || id == 0) {
           throw Exception('Réponse invalide du serveur');
         }
+
+
+    // Récupérer le matricule et le stocker dans SharedPreferences
+      final matricule = await ApprenantService.getMatriculeByEmail(email);
+      print('Matricule récupéré : $matricule');
+      if (matricule != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('matricule', matricule);
+      }
+
 
         return Utilisateur(
           token: token,

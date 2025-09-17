@@ -49,4 +49,10 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
     @Query("SELECT COUNT(a) FROM Apprenant a WHERE a.niveau IS NOT NULL AND a.matricule IS NULL")
     int countIndependants();
 
+
+    Apprenant findByUtilisateurEmail(String email);
+
+
+    
+
 }

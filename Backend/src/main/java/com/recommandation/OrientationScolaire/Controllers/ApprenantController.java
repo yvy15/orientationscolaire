@@ -3,6 +3,7 @@ package com.recommandation.OrientationScolaire.Controllers;
 import com.recommandation.OrientationScolaire.Models.Apprenant;
 import com.recommandation.OrientationScolaire.Packages.ApprenantIndependantRequest;
 import com.recommandation.OrientationScolaire.Packages.ApprenantRequest;
+import com.recommandation.OrientationScolaire.Repository.ApprenantRepository;
 import com.recommandation.OrientationScolaire.Services.ApprenantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,9 @@ public class ApprenantController {
 
     @Autowired
     private ApprenantService apprenantService;
+
+    @Autowired
+    private ApprenantRepository apprenantRepository;
 
     @GetMapping(params = "filiereId")
     public List<Apprenant> getApprenantsByFiliere(@RequestParam Integer filiereId) {
@@ -99,5 +103,17 @@ public ResponseEntity<?> mettreAJourProfil(
     }
 }
 
+
+
+    @GetMapping("/matricule-by-email")
+public ResponseEntity<String> getMatriculeByEmail(@RequestParam String email) {
+    Apprenant apprenant = apprenantRepository.findByUtilisateurEmail(email);
+    if (apprenant != null) {
+         System.out.println("Matricule trouvé : " + apprenant.getMatricule());
+        return ResponseEntity.ok(apprenant.getMatricule());
+    } else {
+        return ResponseEntity.notFound().build();
+    }
+}
 
 }

@@ -8,6 +8,9 @@ import 'package:frontend/services/test_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/Config/ApiConfig.dart';
+import 'package:frontend/services/NoteService.dart';
+import 'package:frontend/screens/etablissment/messagerie/messageDashboard.dart';
+
 
 class TestPsychotechniqueScreen1 extends StatefulWidget {
   final String? secteur;
@@ -157,8 +160,21 @@ Ne retourne que du JSON valide et uniquement en français.
     required Map<int, String> userAnswers,
     required Utilisateur utilisateur,
   }) async {
-
+   
+     final prefs = await SharedPreferences.getInstance();
     
+     final matricule1 = prefs.getString('matricule');
+
+      print("🛠️ Analyse des résultats pour le matricule: $matricule1");
+    
+
+      // Variable pour stocker la liste des notes de l'apprenant scolarisé
+      final notes = await NoteService.getNotesParTypeParMatiere(matricule1 ?? '');
+
+
+   print("🛠️ voici les notes de l etudiant: $notes");
+    
+
    // 🔍 Reconstruction des réponses sous forme : question → texte réponse
   final Map<String, String> reponses = {};
 
@@ -195,7 +211,7 @@ Retourne aussi :
 - 3 recommandations de carrières adaptées au secteur $secteur,
 - 2 filières adaptées à ces métiers,
 - Si un score est en dessous de la moyenne, propose 3 alternatives de métiers dans le secteur,
-- Donne des conseils personnalisés pour progresser.
+- Donne des conseils personnalisés pour progresser. , en sachant que les notes sur 20 au format json de cet etudiant au cours de l annee sont $notes et tu devras lui demander dans la partie conseil d ameliorer son niveau sur les matieres sur lesquels ils n excelle pas mais que les sous metiers qu il choisit l exige des bonnes notes:
 
 Format attendu :
 
@@ -338,7 +354,38 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
                                 );
                               },
                               child: const Text("Retour au tableau de bord"),
+                            
                             ),
+                            
+                            
+                           TextButton(
+                              onPressed: () async {
+                                // Récupérer les infos de l'établissement / conseiller
+                                final prefs = await SharedPreferences.getInstance();
+                                final int? etablissementId = prefs.getInt('etablissement_id'); // clé correcte
+                                final String? nomConseiller = prefs.getString('etablissementNom');
+
+                                if (etablissementId != null && nomConseiller != null) {
+                                  Navigator.pop(context); // ferme le dialogue des résultats
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => MessagerieScreen(
+                                        expediteurId: widget.utilisateur.id,       // apprenant connecté
+                                        destinataireId: etablissementId,          // conseiller
+                                        expediteurNom: nomConseiller,             // nom du conseiller
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Impossible de trouver les informations du conseiller.')),
+                                  );
+                                }
+                              },
+                              child: const Text("Contacter mon conseiller"),
+                            ),
+                                          
                           ],
                         );
                       },

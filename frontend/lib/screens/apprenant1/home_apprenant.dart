@@ -525,7 +525,12 @@ class HomeApprenantState extends State<HomeApprenant>
                               etablissement: etablissementLocal!,
                               id: widget.utilisateur.id,
                             );
-                             final prefs = await SharedPreferences.getInstance();
+                            
+                          final prefs = await SharedPreferences.getInstance();
+                          final String currentMatricule = matriculeController.text.trim();
+                          await prefs.setString('matricule', currentMatricule);
+                          print('Matricule enregistré dans SharedPreferences: $currentMatricule'); // Debug print
+                          
        
                               await prefs.setBool('estComplet', true);
                             setState(() {

@@ -163,4 +163,14 @@ static Future<Map<String, dynamic>> ajouterApprenantIndependant({
     throw Exception("Erreur lors de l'inscription indépendante");
   }
 }
+
+  static Future<String?> getMatriculeByEmail(String email) async {
+    final response = await http.get(Uri.parse('$baseUrl/matricule-by-email?email=$email'));
+    if (response.statusCode == 200) {
+      return response.body.replaceAll('"', ''); // Si le backend retourne un string JSON
+    }
+    return null;
+  }
+
+  
 }

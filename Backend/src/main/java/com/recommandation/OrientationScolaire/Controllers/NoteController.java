@@ -5,6 +5,7 @@ import com.recommandation.OrientationScolaire.Services.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notes")
@@ -31,4 +32,14 @@ public class NoteController {
     public void deleteNote(@PathVariable Long id) {
         noteService.deleteNote(id);
     }
+
+
+    @GetMapping("/type-matiere/{matricule}")
+    public Map<String, Object> getNotesParTypeParMatiere(@PathVariable String matricule) {
+        return noteService.getNotesParTypeParMatiere(matricule);
+    }
+
+    
+
+
 }

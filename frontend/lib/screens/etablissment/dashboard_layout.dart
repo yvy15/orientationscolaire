@@ -7,6 +7,8 @@ import 'ajouter_apprenant.dart';
 import 'ajouter_note.dart';
 import 'dashboardStatistique.dart';
 import 'dashboard_matieres.dart';
+import 'package:frontend/screens/etablissment/messagerie/ConversationsDialog.dart';
+
 
 class DashboardLayout extends StatefulWidget {
   final Utilisateur utilisateur;
@@ -32,6 +34,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       DashboardStatistique(),
       DashboardClasses(),
       DashboardMatieres(),
+      
     ];
 
     return Scaffold(
@@ -117,6 +120,18 @@ class _DashboardLayoutState extends State<DashboardLayout> {
               title: const Text('Gérer vos matieres'),
               onTap: () => _setPage(6),
             ),
+          
+             ListTile(
+                leading: const Icon(Icons.message),
+                title: const Text('Messageries'),
+                onTap: () {
+                  Navigator.pop(context); // fermer le drawer
+                  showDialog(
+                    context: context,
+                    builder: (_) => ConversationsDialog(userId: widget.utilisateur.id),
+                  );
+                },
+              ),
           ],
         ),
       ),
