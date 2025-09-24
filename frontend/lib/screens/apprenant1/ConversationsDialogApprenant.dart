@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/screens/etablissment/messagerie/messageDashboard.dart';
 import 'package:frontend/services/MessageService.dart';
+import 'package:frontend/screens/etablissment/messagerie/messageDashboard.dart';
 import 'package:intl/intl.dart';
 
-class ConversationsDialog extends StatefulWidget {
-  final int userId; // utilisateur connecté (établissement)
+class ConversationsDialogApprenant extends StatefulWidget {
+  final int userId;
 
-  const ConversationsDialog({super.key, required this.userId});
+  const ConversationsDialogApprenant({
+    super.key,
+    required this.userId,
+    required int etablissementId, // conservé comme dans ton code original
+  });
 
   @override
-  State<ConversationsDialog> createState() => _ConversationsDialogState();
+  State<ConversationsDialogApprenant> createState() => _ConversationsDialogApprenantState();
 }
 
-class _ConversationsDialogState extends State<ConversationsDialog> {
+class _ConversationsDialogApprenantState extends State<ConversationsDialogApprenant> {
   List<Map<String, dynamic>> conversations = [];
   bool isLoading = true;
 
@@ -25,22 +29,22 @@ class _ConversationsDialogState extends State<ConversationsDialog> {
   Future<void> chargerConversations() async {
     setState(() => isLoading = true);
     try {
-      final convs = await MessageService.getConversations(widget.userId);
+      // utilise getConversationsUser si tu l'as ; sinon adapte ton MessageService pour l'ajouter.
+      final convs = await MessageService.getConversationsUser(widget.userId);
       setState(() {
         conversations = convs;
         isLoading = false;
       });
     } catch (e) {
       setState(() => isLoading = false);
-      print("Erreur chargement conversations : $e");
+      print("Erreur chargement conversations apprenant : $e");
     }
   }
 
   String formaterDate(String? date) {
     if (date == null) return "";
     try {
-      final dateTime = DateTime.parse(date);
-      return DateFormat("HH:mm").format(dateTime);
+      return DateFormat("HH:mm").format(DateTime.parse(date));
     } catch (e) {
       return "";
     }
@@ -49,22 +53,17 @@ class _ConversationsDialogState extends State<ConversationsDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         color: Colors.grey[100],
-        constraints: const BoxConstraints(maxHeight: 500, maxWidth: 400),
+        constraints: const BoxConstraints(maxHeight: 500),
         child: Column(
           children: [
             const SizedBox(height: 6),
             const Text(
-              "Conversations",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
-              ),
+              "Mes conversations",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
             ),
             const SizedBox(height: 6),
             const Divider(),
@@ -77,8 +76,11 @@ class _ConversationsDialogState extends State<ConversationsDialog> {
                           itemCount: conversations.length,
                           itemBuilder: (context, index) {
                             final conv = conversations[index];
-                            final apprenant = conv['expediteur']; // car l’établissement est destinataire
-                            final dernierMessage = conv['contenu'] ?? "";
+                            final autreUser = conv['expediteur']['id'] == widget.userId
+                                ? conv['destinataire']
+                                : conv['expediteur'];
+
+                            final dernierMessage = conv['contenu'] ?? '';
                             final heure = formaterDate(conv['dateEnvoi']);
 
                             return Card(
@@ -88,23 +90,23 @@ class _ConversationsDialogState extends State<ConversationsDialog> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   radius: 24,
-                                  backgroundColor: Colors.teal,
+                                  backgroundColor: Colors.teal[300],
                                   child: Text(
-                                    (apprenant?['nom_user'] ?? "U").isNotEmpty
-                                        ? (apprenant?['nom_user'] ?? "U")[0].toUpperCase()
+                                    (autreUser?['nom_user'] ?? "U").isNotEmpty
+                                        ? (autreUser?['nom_user'] ?? "U")[0].toUpperCase()
                                         : "U",
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 title: Text(
-                                  apprenant?['nom_user'] ?? "Apprenant inconnu",
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                  autreUser?['nom_user'] ?? "Utilisateur inconnu",
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                 ),
                                 subtitle: Text(
                                   dernierMessage,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                                  style: TextStyle(color: Colors.grey[700]),
                                 ),
                                 trailing: Text(
                                   heure,
@@ -117,8 +119,8 @@ class _ConversationsDialogState extends State<ConversationsDialog> {
                                     MaterialPageRoute(
                                       builder: (_) => MessagerieScreen(
                                         expediteurId: widget.userId,
-                                        destinataireId: apprenant?['id'],
-                                        expediteurNom: apprenant?['nom_user'] ?? '',
+                                        destinataireId: autreUser?['id'],
+                                        expediteurNom: autreUser?['nom_user'] ?? '',
                                       ),
                                     ),
                                   );

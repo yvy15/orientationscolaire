@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/screens/apprenant1/ConversationsDialogApprenant.dart';
 import 'package:frontend/screens/apprenant1/test_psychotechnique1.dart';
 import 'home_apprenant.dart';
 
@@ -125,6 +126,21 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
                 Navigator.pop(context);
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.chat_bubble_outline),
+              title: const Text('Messagerie'),
+              onTap: () {
+                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  builder: (_) => ConversationsDialogApprenant(
+                    userId: widget.utilisateur.id, 
+                    etablissementId: widget.utilisateur.id,
+                  ),
+                );
+              },
+            ),
+          
           ],
         ),
       ),

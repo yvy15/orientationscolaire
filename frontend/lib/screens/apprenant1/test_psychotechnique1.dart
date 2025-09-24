@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Test_psychotechnique.dart';
 import 'package:frontend/models/Utilisateur.dart';
+import 'package:frontend/screens/apprenant1/ConversationsDialogApprenant.dart';
 import 'package:frontend/screens/apprenant1/dashboard_layout.dart';
 import 'package:frontend/screens/apprenant1/page_resultat1.dart';
 import 'package:frontend/services/test_service.dart';
@@ -10,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/Config/ApiConfig.dart';
 import 'package:frontend/services/NoteService.dart';
 import 'package:frontend/screens/etablissment/messagerie/messageDashboard.dart';
+import 'package:frontend/screens/etablissment/messagerie/ConversationsDialog.dart';
 
 
 class TestPsychotechniqueScreen1 extends StatefulWidget {
@@ -356,35 +358,34 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
                               child: const Text("Retour au tableau de bord"),
                             
                             ),
-                            
-                            
-                           TextButton(
-                              onPressed: () async {
-                                // Récupérer les infos de l'établissement / conseiller
-                                final prefs = await SharedPreferences.getInstance();
-                                final int? etablissementId = prefs.getInt('etablissement_id'); // clé correcte
-                                final String? nomConseiller = prefs.getString('etablissementNom');
+                          
+                          TextButton(
+                      onPressed: () async {
+                        // Récupérer les infos de l'établissement / conseiller connecté
+                        final prefs = await SharedPreferences.getInstance();
+                        final int? etablissementId = prefs.getInt('etablissement_id'); // id de l'établissement connecté
+                        final String? nomConseiller = prefs.getString('etablissementNom');
 
-                                if (etablissementId != null && nomConseiller != null) {
-                                  Navigator.pop(context); // ferme le dialogue des résultats
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => MessagerieScreen(
-                                        expediteurId: widget.utilisateur.id,       // apprenant connecté
-                                        destinataireId: etablissementId,          // conseiller
-                                        expediteurNom: nomConseiller,             // nom du conseiller
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Impossible de trouver les informations du conseiller.')),
-                                  );
-                                }
-                              },
-                              child: const Text("Contacter mon conseiller"),
+                        if (widget.utilisateur.id != null ) {
+                          Navigator.pop(context); // ferme le dialogue des résultats
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ConversationsDialogApprenant(
+                                userId: widget.utilisateur.id, // l'apprenant connecté
+                                etablissementId: widget.utilisateur.id,         // l'établissement connecté
+                              ),
                             ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Impossible de trouver les informations du conseiller.')),
+                          );
+                        }
+                      },
+                      child: const Text("Contacter mon conseiller"),
+                    ),
+
                                           
                           ],
                         );

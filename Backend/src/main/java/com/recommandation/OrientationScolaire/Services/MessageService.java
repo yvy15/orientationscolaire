@@ -45,4 +45,11 @@ public class MessageService {
         Utilisateur destinataire = utilisateurRepository.findById(destinataireId).orElseThrow();
         return messageRepository.findDerniersMessagesParExpediteur(destinataire);
     }
+
+
+    public List<Message> getDerniersMessagesParUtilisateur(Long utilisateurId) {
+    Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId).orElseThrow();
+    return messageRepository.findDerniersMessagesParUtilisateur(utilisateur);
+}
+
 }

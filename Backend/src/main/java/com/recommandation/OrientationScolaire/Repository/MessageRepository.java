@@ -21,4 +21,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "AND m.dateEnvoi = (SELECT MAX(m2.dateEnvoi) FROM Message m2 " +
            "WHERE m2.expediteur = m.expediteur AND m2.destinataire = :destinataire)")
     List<Message> findDerniersMessagesParExpediteur(@Param("destinataire") Utilisateur destinataire);
+
+    @Query("SELECT m FROM Message m WHERE " +
+       "(m.expediteur = :utilisateur OR m.destinataire = :utilisateur) AND " +
+       "m.dateEnvoi = (" +
+       "  SELECT MAX(m2.dateEnvoi) FROM Message m2 " +
+       "  WHERE (m2.expediteur = m.expediteur AND m2.destinataire = m.destinataire) " +
+       "     OR (m2.expediteur = m.destinataire AND m2.destinataire = m.expediteur)" +
+       ")")
+List<Message> findDerniersMessagesParUtilisateur(@Param("utilisateur") Utilisateur utilisateur);
+
 }

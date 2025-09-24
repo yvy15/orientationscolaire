@@ -41,4 +41,19 @@ class MessageService {
       throw Exception("Erreur récupération conversations : ${response.body}");
     }
   }
+
+
+
+  // Récupérer toutes les conversations d’un utilisateur (expéditeur OU destinataire)
+static Future<List<Map<String, dynamic>>> getConversationsUser(int utilisateurId) async {
+  final response = await http.get(Uri.parse('$baseUrl/conversations-user?utilisateurId=$utilisateurId'));
+  if (response.statusCode == 200) {
+    return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+  } else {
+    throw Exception("Erreur récupération conversations utilisateur : ${response.body}");
+  }
+}
+
+  static Future<void> supprimerMessage(int messageId) async {}
+
 }

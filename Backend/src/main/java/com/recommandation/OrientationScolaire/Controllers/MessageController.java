@@ -44,4 +44,11 @@ public class MessageController {
     public List<Message> getConversations(@RequestParam Long destinataireId) {
         return messageService.getDerniersMessagesParExpediteur(destinataireId);
     }
+
+
+    @GetMapping("/conversations-user")
+    public List<Message> getConversationsUser(@RequestParam Long utilisateurId) {
+    return messageService.getDerniersMessagesParUtilisateur(utilisateurId);
+}
+
 }
