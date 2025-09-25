@@ -11,9 +11,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/Config/ApiConfig.dart';
 import 'package:frontend/services/NoteService.dart';
+import 'package:frontend/services/Etablissementservice.dart';
 import 'package:frontend/screens/etablissment/messagerie/messageDashboard.dart';
 import 'package:frontend/screens/etablissment/messagerie/ConversationsDialog.dart';
-
 
 class TestPsychotechniqueScreen1 extends StatefulWidget {
   final String? secteur;
@@ -32,10 +32,12 @@ class TestPsychotechniqueScreen1 extends StatefulWidget {
   });
 
   @override
-  State<TestPsychotechniqueScreen1> createState() => _TestPsychotechniqueScreenState1();
+  State<TestPsychotechniqueScreen1> createState() =>
+      _TestPsychotechniqueScreenState1();
 }
 
-class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1> {
+class _TestPsychotechniqueScreenState1
+    extends State<TestPsychotechniqueScreen1> {
   List<Map<String, dynamic>> questions = [];
   Map<int, String> reponsesUtilisateur = {};
   bool isLoading = true;
@@ -78,11 +80,10 @@ class _TestPsychotechniqueScreenState1 extends State<TestPsychotechniqueScreen1>
     };
     print("ici body: $body");
 
-
     try {
       if (estComplet == true) {
         await _genererQuestionsDepuisMistral();
-         print("Utilisateur complet, génération locale des questions.");
+        print("Utilisateur complet, génération locale des questions.");
       } else {
         final backendResponse = await http.post(
           Uri.parse("${ApiConfig.baseUrl}/test/soumettre"),
@@ -163,40 +164,36 @@ Ne retourne que du JSON valide et uniquement en français.
     required Map<int, String> userAnswers,
     required Utilisateur utilisateur,
   }) async {
-   
-     final prefs = await SharedPreferences.getInstance();
-    
-     final matricule1 = prefs.getString('matricule');
+    final prefs = await SharedPreferences.getInstance();
 
-      print("🛠️ Analyse des résultats pour le matricule: $matricule1");
-    
+    final matricule1 = prefs.getString('matricule');
 
-      // Variable pour stocker la liste des notes de l'apprenant scolarisé
-      final notes = await NoteService.getNotesParTypeParMatiere(matricule1 ?? '');
+    print("🛠️ Analyse des résultats pour le matricule: $matricule1");
 
+    // Variable pour stocker la liste des notes de l'apprenant scolarisé
+    final notes = await NoteService.getNotesParTypeParMatiere(matricule1 ?? '');
 
-   print("🛠️ voici les notes de l etudiant: $notes");
-    
+    print("🛠️ voici les notes de l etudiant: $notes");
 
-   // 🔍 Reconstruction des réponses sous forme : question → texte réponse
-  final Map<String, String> reponses = {};
+    // 🔍 Reconstruction des réponses sous forme : question → texte réponse
+    final Map<String, String> reponses = {};
 
-  for (int i = 0; i < questions.length; i++) {
-    final question = questions[i]['question'];
-    final selectedOption = userAnswers[i];
-    final optionText = questions[i]['options'][selectedOption]?['text'];
+    for (int i = 0; i < questions.length; i++) {
+      final question = questions[i]['question'];
+      final selectedOption = userAnswers[i];
+      final optionText = questions[i]['options'][selectedOption]?['text'];
 
-    if (question != null && optionText != null) {
-      reponses[question] = optionText;
+      if (question != null && optionText != null) {
+        reponses[question] = optionText;
+      }
     }
-  }
 
-  String metiersList = metiers.where((m) => m.isNotEmpty).join(', ');
+    String metiersList = metiers.where((m) => m.isNotEmpty).join(', ');
 
-  // 🧠 Construction du prompt
+    // 🧠 Construction du prompt
 // ...existing code...
-  // 🧠 Construction du prompt
-  final mistralPrompt = """
+    // 🧠 Construction du prompt
+    final mistralPrompt = """
 Voici les réponses d’un utilisateur à un test psychotechnique dans le secteur $secteur :
 
 ${jsonEncode(reponses)}
@@ -247,27 +244,26 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
 """;
 // ...existing code...;
 
-  // 🚀 Appel à l’API Mistral
-  final mistralResponse = await http.post(
-    Uri.parse("https://api.mistral.ai/v1/chat/completions"),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer oPrGB2UPZBr4uWldQQ5uuP2Yx5d8iizw',
-    },
-    body: jsonEncode({
-      "model": "mistral-tiny",
-      "messages": [
-        {"role": "user", "content": mistralPrompt}
-      ],
-    }),
-  );
+    // 🚀 Appel à l’API Mistral
+    final mistralResponse = await http.post(
+      Uri.parse("https://api.mistral.ai/v1/chat/completions"),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer oPrGB2UPZBr4uWldQQ5uuP2Yx5d8iizw',
+      },
+      body: jsonEncode({
+        "model": "mistral-tiny",
+        "messages": [
+          {"role": "user", "content": mistralPrompt}
+        ],
+      }),
+    );
 
-  if (mistralResponse.statusCode == 200) {
-    final content = jsonDecode(mistralResponse.body);
-    final message = content['choices'][0]['message']['content'];
+    if (mistralResponse.statusCode == 200) {
+      final content = jsonDecode(mistralResponse.body);
+      final message = content['choices'][0]['message']['content'];
 
-    try {
-      
+      try {
         final test = TestPsychotechnique(
           matricule: matricule,
           secteur: secteur,
@@ -280,15 +276,13 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
 
         await TestService.enregistrerTest(test);
 
-      return jsonDecode(message);
-    } catch (e) {
-      throw Exception("Réponse Mistral non parsable : $message");
+        return jsonDecode(message);
+      } catch (e) {
+        throw Exception("Réponse Mistral non parsable : $message");
+      }
+    } else {
+      throw Exception("Erreur Mistral : ${mistralResponse.statusCode}");
     }
-  } else {
-    throw Exception("Erreur Mistral : ${mistralResponse.statusCode}");
-  }
-
-    
   }
 
   @override
@@ -316,118 +310,148 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
         child: isLoading
             ? _buildSkeleton()
             : Column(
-          children: [
-            _buildQuestionnaire(),
-            const SizedBox(height: 20),
-            if (reponsesUtilisateur.length == questions.length)
-              ElevatedButton(
-                onPressed: () async {
-                  try {
-                    final result = await analyserEtEnregistrerResultats(
-                      matricule: widget.matricule,
-                      secteur: widget.secteur ?? '',
-                      metiers: widget.metiers,
-                      questions: questions,
-                      userAnswers: reponsesUtilisateur,
-                      utilisateur: widget.utilisateur,
-                    );
-                    setState(() {
-                      resultats = result;
-                    });
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text("Résultats du Test Psychotechnique"),
-                          content: SingleChildScrollView(
-                            child: ResultatsDialogContent1(
-                              resultats1: resultats!,
-                              sousMetiersChoisis1: widget.metiers.cast<String>(),
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => DashboardLayoutApprenant(utilisateur: widget.utilisateur),
-                                  ),
-                                );
-                              },
-                              child: const Text("Retour au tableau de bord"),
-                            
-                            ),
-                          
-                          TextButton(
+                children: [
+                  _buildQuestionnaire(),
+                  const SizedBox(height: 20),
+                  if (reponsesUtilisateur.length == questions.length)
+                    ElevatedButton(
                       onPressed: () async {
-                        // Récupérer l'id de l'utilisateur connecté en tant qu'établissement (conseiller)
+                        try {
+                          final result = await analyserEtEnregistrerResultats(
+                            matricule: widget.matricule,
+                            secteur: widget.secteur ?? '',
+                            metiers: widget.metiers,
+                            questions: questions,
+                            userAnswers: reponsesUtilisateur,
+                            utilisateur: widget.utilisateur,
+                          );
+                          setState(() {
+                            resultats = result;
+                          });
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text(
+                                    "Résultats du Test Psychotechnique"),
+                                content: SingleChildScrollView(
+                                  child: ResultatsDialogContent1(
+                                    resultats1: resultats!,
+                                    sousMetiersChoisis1:
+                                        widget.metiers.cast<String>(),
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              DashboardLayoutApprenant(
+                                                  utilisateur:
+                                                      widget.utilisateur),
+                                        ),
+                                      );
+                                    },
+                                    child:
+                                        const Text("Retour au tableau de bord"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      // Récupérer l'id de l'utilisateur connecté en tant qu'établissement (conseiller)
 
-                        // On récupère l'id utilisateur de l'établissement affilié à l'apprenant
-                        final conseillerId = await MessageService.getEtablissementUtilisateurId(widget.utilisateur.id);
-                        if (conseillerId == null) {
+                                      // On récupère l'id utilisateur de l'établissement affilié à l'apprenant
+                                      print(
+                                          "🛠️ Récupération de l'id utilisateur de l'établissement affilié à l'apprenant en sachant que l'id de cet utilisateur connecter est ${widget.utilisateur.id}");
+                                      final conseillerId = await MessageService
+                                          .getEtablissementUtilisateurId(
+                                              widget.utilisateur.id);
+                                      if (conseillerId == null) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  'Impossible de trouver les informations du conseiller.')),
+                                        );
+                                        return;
+                                      }
+                                      // Récupérer le nom d’établissement de façon asynchrone
+                                      String? conseillerNom;
+                                      try {
+                                        conseillerNom =
+                                            await EtablissementService
+                                                .getEtablissementByUtilisateurId(
+                                                    widget.utilisateur.id);
+                                      } catch (e) {
+                                        conseillerNom = widget.nomEtablissement;
+                                      }
+
+                                      // Chercher si une conversation existe déjà avec le conseiller
+                                      final conversations = await MessageService
+                                          .getConversationsUser(
+                                              widget.utilisateur.id);
+                                      final conversationExistante =
+                                          conversations.firstWhere(
+                                        (conv) => (conv['expediteur']?['id'] ==
+                                                conseillerId ||
+                                            conv['destinataire']?['id'] ==
+                                                conseillerId),
+                                        orElse: () => {},
+                                      );
+
+                                      Navigator.pop(
+                                          context); // ferme le dialogue des résultats
+                                      if (conversationExistante.isNotEmpty) {
+                                        // Ouvre directement la discussion existante
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => MessagerieScreen(
+                                              expediteurId:
+                                                  widget.utilisateur.id,
+                                              destinataireId: conseillerId,
+                                              expediteurNom: conseillerNom ??
+                                                  'Établissement',
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        // Ouvre le popup avec le conseiller affiché comme contact
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                ConversationsDialogApprenant(
+                                              userId: widget.utilisateur.id,
+                                              etablissementNom: conseillerNom ??
+                                                  'Établissement',
+                                              etablissementId: conseillerId,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child:
+                                        const Text("Contacter mon conseiller"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } catch (e) {
+                          print("❌ Erreur : $e");
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Impossible de trouver les informations du conseiller.')),
-                          );
-                          return;
-                        }
-                        final conseillerNom = widget.nomEtablissement;
-
-                        // Chercher si une conversation existe déjà avec le conseiller
-                        final conversations = await MessageService.getConversationsUser(widget.utilisateur.id);
-                        final conversationExistante = conversations.firstWhere(
-                          (conv) =>
-                            (conv['expediteur']?['id'] == conseillerId || conv['destinataire']?['id'] == conseillerId),
-                          orElse: () => {},
-                        );
-
-                        Navigator.pop(context); // ferme le dialogue des résultats
-                        if (conversationExistante.isNotEmpty) {
-                          // Ouvre directement la discussion existante
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => MessagerieScreen(
-                                expediteurId: widget.utilisateur.id,
-                                destinataireId: conseillerId,
-                                expediteurNom: conseillerNom,
-                              ),
-                            ),
-                          );
-                        } else {
-                          // Ouvre le popup avec le conseiller affiché comme contact
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ConversationsDialogApprenant(
-                                userId: widget.utilisateur.id,
-                                etablissementNom: widget.nomEtablissement,
-                                etablissementId: conseillerId,
-                              ),
-                            ),
+                            SnackBar(
+                                content: Text("Erreur lors de l’analyse : $e")),
                           );
                         }
                       },
-                      child: const Text("Contacter mon conseiller"),
+                      child: const Text("Terminer le test"),
                     ),
-
-                                          
-                          ],
-                        );
-                      },
-                    );
-                  } catch (e) {
-                    print("❌ Erreur : $e");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Erreur lors de l’analyse : $e")),
-                    );
-                  }
-                },
-                child: const Text("Terminer le test"),
+                ],
               ),
-          ],
-        ),
       ),
     );
   }
@@ -441,7 +465,7 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
         margin: const EdgeInsets.only(bottom: 16),
         height: 100,
         decoration: BoxDecoration(
-            color: Color(0xFF005F73),
+          color: Color(0xFF005F73),
           borderRadius: BorderRadius.circular(12),
         ),
       ),
@@ -464,14 +488,16 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
               children: [
                 Text(
                   "${index + 1}. ${question['question']}",
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 ...["A", "B", "C"].map((option) {
                   return RadioListTile(
                     value: option,
                     groupValue: reponsesUtilisateur[index],
-                    title: Text("$option) ${question['options'][option]['text']}"),
+                    title:
+                        Text("$option) ${question['options'][option]['text']}"),
                     onChanged: (val) {
                       setState(() {
                         reponsesUtilisateur[index] = val!;

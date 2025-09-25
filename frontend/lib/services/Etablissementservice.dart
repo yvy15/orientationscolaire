@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:frontend/models/Etablissement.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/Config/ApiConfig.dart';
@@ -48,5 +49,15 @@ class EtablissementService {
       return jsonList.cast<Map<String, dynamic>>();
     }
     return [];
+  }
+
+  static Future<String?> getEtablissementByUtilisateurId(int utilisateurId) async {
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/apprenants/$utilisateurId/etablissement'));
+    if (response.statusCode == 200) {
+      return response.body.toString();
+    } else {
+      print('Erreur récupération établissement : ${response.body}');
+      return null;
+    }
   }
 }

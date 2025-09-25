@@ -8,7 +8,7 @@ import 'package:frontend/Config/ApiConfig.dart';
 
 
 class TestService {
-  static const String baseUrl = "${ApiConfig.baseUrl}/test";
+  static final String baseUrl = "${ApiConfig.baseUrl}/test";
 
   /// ✅ Vérifier si le profil est complet
   static Future<Map<String, dynamic>> verifierProfil(

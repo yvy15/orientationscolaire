@@ -7,12 +7,15 @@ import com.recommandation.OrientationScolaire.Packages.ApprenantRequest;
 import com.recommandation.OrientationScolaire.Repository.ApprenantRepository;
 import com.recommandation.OrientationScolaire.Services.ApprenantService;
 import com.recommandation.OrientationScolaire.Models.Utilisateur;
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/apprenants")
@@ -133,12 +136,32 @@ public ResponseEntity<Utilisateur> getConseiller(@PathVariable Long apprenantId)
     // Endpoint pour récupérer l'id de l'utilisateur de l'établissement affilié à un apprenant
     @GetMapping("/{apprenantId}/etablissement-utilisateur-id")
     public ResponseEntity<Long> getEtablissementUtilisateurId(@PathVariable Long apprenantId) {
-        Apprenant apprenant = apprenantRepository.findById(apprenantId).orElse(null);
-        if (apprenant == null || apprenant.getEtablissement() == null || apprenant.getEtablissement().getUtilisateur() == null) {
+        
+        Optional<Apprenant> apprenant = apprenantRepository.findByUtilisateurId(apprenantId);
+        if (!apprenant.isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        Long utilisateurId = apprenant.getEtablissement().getUtilisateur().getId();
+       Apprenant apprenant1=apprenant.get();
+        if (apprenant1 == null || apprenant1.getEtablissement() == null || apprenant1.getEtablissement().getUtilisateur() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Long utilisateurId = apprenant1.getEtablissement().getUtilisateur().getId();
         return ResponseEntity.ok(utilisateurId);
+    }
+
+     @GetMapping("/{utilisateurId}/etablissement")
+    public ResponseEntity<String> getEtablissementByUtilisateurId(@PathVariable Long utilisateurId) {
+        
+        Optional<Apprenant> apprenant = apprenantRepository.findByUtilisateurId(utilisateurId);
+        if (!apprenant.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+       Apprenant apprenant1=apprenant.get();
+        if (apprenant1 == null || apprenant1.getEtablissement() == null || apprenant1.getEtablissement().getUtilisateur() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Etablissement etablissement = apprenant1.getEtablissement();
+        return ResponseEntity.ok(etablissement.getNom());
     }
 
 }

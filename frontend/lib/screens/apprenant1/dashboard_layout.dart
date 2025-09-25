@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/apprenant1/ConversationsDialogApprenant.dart';
 import 'package:frontend/screens/apprenant1/test_psychotechnique1.dart';
+import 'package:frontend/services/Etablissementservice.dart';
 import 'home_apprenant.dart';
 
 class DashboardLayoutApprenant extends StatefulWidget {
@@ -10,14 +11,16 @@ class DashboardLayoutApprenant extends StatefulWidget {
   const DashboardLayoutApprenant({super.key, required this.utilisateur});
 
   @override
-  State<DashboardLayoutApprenant> createState() => _DashboardLayoutApprenantState();
+  State<DashboardLayoutApprenant> createState() =>
+      _DashboardLayoutApprenantState();
 }
 
 class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
   int selectedIndex = 0;
 
   late final List<Widget> pages;
-  final GlobalKey<HomeApprenantState> homeApprenantKey = GlobalKey<HomeApprenantState>();
+  final GlobalKey<HomeApprenantState> homeApprenantKey =
+      GlobalKey<HomeApprenantState>();
 
   @override
   void initState() {
@@ -65,7 +68,9 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            shadows: [Shadow(blurRadius: 3, color: Colors.black)],
+                            shadows: [
+                              Shadow(blurRadius: 3, color: Colors.black)
+                            ],
                           ),
                         ),
                         CircleAvatar(
@@ -129,19 +134,29 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
             ListTile(
               leading: const Icon(Icons.chat_bubble_outline),
               title: const Text('Messagerie'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (_) => ConversationsDialogApprenant(
-                    userId: widget.utilisateur.id, 
-                    etablissementId: widget.utilisateur.id,
-                     etablissementNom: '',
-                  ),
-                );
+                try {
+                  final etablissementNom = await EtablissementService
+                      .getEtablissementByUtilisateurId(widget.utilisateur.id);
+                  if (!mounted) return;
+                  showDialog(
+                    context: context,
+                    builder: (_) => ConversationsDialogApprenant(
+                      userId: widget.utilisateur.id,
+                      etablissementId: widget.utilisateur.id,
+                      etablissementNom: etablissementNom ?? 'Établissement',
+                    ),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text("Impossible d’ouvrir la messagerie: $e")),
+                  );
+                }
               },
             ),
-          
           ],
         ),
       ),

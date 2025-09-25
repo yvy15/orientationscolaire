@@ -4,7 +4,7 @@ import 'package:frontend/Config/ApiConfig.dart';
 
 class ApprenantService {
   
-   static const String baseUrl = "${ApiConfig.baseUrl}/apprenants";
+   static final String baseUrl = "${ApiConfig.baseUrl}/apprenants";
 
   // Récupère tous les apprenants d'un établissement
   Future<List<Map<String, dynamic>>> getApprenants(int etablissementId) async {

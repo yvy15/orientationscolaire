@@ -6,27 +6,29 @@ import 'package:frontend/Config/ApiConfig.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/services/ApprenantService.dart';
 
-
-
-
-
 class AuthService {
-  final String baseUrl = "${ApiConfig.baseUrl}/auth"; // à adapter // lien vers le controller d'authentification : si l'adresse est en chiffre alors le fontend n'est pas dans le meme reseau que le backend , 
-  //et ils sont dans le meme reseau dan le cas contraire qu'il y'a localhost. 
-
+  // Résolution dynamique de l'URL du serveur (override > ApiConfig)
+  Future<String> _resolveBaseUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('api_base_url_override') ?? ApiConfig.baseUrl;
+  }
 
   Future<Utilisateur?> seconnecter(String email, String motPasse) async {
-    final url = Uri.parse('$baseUrl/login');
+    final base = await _resolveBaseUrl();
+    final url = Uri.parse('$base/auth/login');
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'mot_passe': motPasse,
-        }),
-      ).timeout(Duration(seconds: 20)); // ← timeout ici //temps d'attente pour que le backend renvoie les informations attendues
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'mot_passe': motPasse,
+            }),
+          )
+          .timeout(const Duration(
+              seconds: 30)); // timeout porté à 30s pour connexions lentes
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -35,22 +37,25 @@ class AuthService {
         final nomUser = data['nom_user'];
         final email = data['email'];
         final role = data['role'];
-        final estComplet=data['estComplet'];
-        final id = data['id'] ?? 0; 
+        final estComplet = data['estComplet'];
+        final id = data['id'] ?? 0;
 
-        if (token == null || nomUser == null || email == null || role == null || estComplet == null || id == 0) {
+        if (token == null ||
+            nomUser == null ||
+            email == null ||
+            role == null ||
+            estComplet == null ||
+            id == 0) {
           throw Exception('Réponse invalide du serveur');
         }
 
-
-    // Récupérer le matricule et le stocker dans SharedPreferences
-      final matricule = await ApprenantService.getMatriculeByEmail(email);
-      print('Matricule récupéré : $matricule');
-      if (matricule != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('matricule', matricule);
-      }
-
+        // Récupérer le matricule et le stocker dans SharedPreferences
+        final matricule = await ApprenantService.getMatriculeByEmail(email);
+        print('Matricule récupéré : $matricule');
+        if (matricule != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('matricule', matricule);
+        }
 
         return Utilisateur(
           token: token,
@@ -81,21 +86,24 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> inscrire(String nomUser, String email, 
-                        String motPasse, String role) async {
-    final url = Uri.parse('$baseUrl/inscrire');
+  Future<Map<String, dynamic>> inscrire(
+      String nomUser, String email, String motPasse, String role) async {
+    final base = await _resolveBaseUrl();
+    final url = Uri.parse('$base/auth/inscrire');
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'nom_user': nomUser,
-          'email': email,
-          'mot_passe': motPasse,
-          'role': role,
-        }),
-      ).timeout(Duration(seconds: 20));
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'nom_user': nomUser,
+              'email': email,
+              'mot_passe': motPasse,
+              'role': role,
+            }),
+          )
+          .timeout(Duration(seconds: 20));
 
       if (response.statusCode == 201) {
         return {'success': true};
@@ -123,5 +131,4 @@ class AuthService {
       };
     }
   }
-
 }

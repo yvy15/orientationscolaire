@@ -4,7 +4,7 @@ import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/Config/ApiConfig.dart';
 
 class UtilisateurService {
-  static const String baseUrl = "${ApiConfig.baseUrl}/utilisateurs";
+  static final String baseUrl = "${ApiConfig.baseUrl}/utilisateurs";
 
   Future<List<Utilisateur>> getAllUtilisateurs() async {
     final response = await http.get(Uri.parse('$baseUrl/all'));

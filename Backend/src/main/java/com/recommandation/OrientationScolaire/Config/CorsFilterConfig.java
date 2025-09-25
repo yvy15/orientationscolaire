@@ -14,10 +14,12 @@ public class CorsFilterConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
 
-        // ✅ Utilise un pattern au lieu de "*"
-        config.addAllowedOriginPattern("http://localhost:*");
-        // Ajoute ici d’autres origines si nécessaire :
-        // config.addAllowedOriginPattern("https://ton-site.com");
+    // ✅ Autoriser les origines locales usuelles (dev)
+    config.addAllowedOriginPattern("http://localhost:*");
+    config.addAllowedOriginPattern("http://127.0.0.1:*");
+    config.addAllowedOriginPattern("http://192.168.*:*");
+    // Expose Authorization si tu utilises des tokens côté client
+    config.addExposedHeader("Authorization");
 
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");

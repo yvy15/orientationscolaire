@@ -7,6 +7,7 @@ import 'package:frontend/screens/etablissment/dashboard_layout.dart';
 import 'package:frontend/services/Authservices.dart';
 import 'package:frontend/utils/helpers/snackbar_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/Config/ApiConfig.dart';
 import '../components/app_text_form_field.dart';
 import '../utils/helpers/navigation_helper.dart';
 import '../values/app_constants.dart';
@@ -27,10 +28,12 @@ class _LoginPageState extends State<LoginPage> {
   final ValueNotifier<bool> fieldValidNotifier = ValueNotifier(false);
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
+  bool _loading = false;
 
   void initializeControllers() {
     emailController = TextEditingController()..addListener(controllerListener);
-    passwordController = TextEditingController()..addListener(controllerListener);
+    passwordController = TextEditingController()
+      ..addListener(controllerListener);
   }
 
   void disposeControllers() {
@@ -191,36 +194,56 @@ class _LoginPageState extends State<LoginPage> {
                       builder: (_, isValid, __) {
                         return SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                            ).copyWith(
-                              backgroundColor: WidgetStateProperty.all(null),
-                            ),
-                            onPressed: isValid ? seconnecter : null,
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF00C9A7), Color(0xFF005F73)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
+                          child: GestureDetector(
+                            onLongPress: _showApiConfigDialog,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
                                 ),
-                                borderRadius: BorderRadius.circular(30),
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                              ).copyWith(
+                                backgroundColor: WidgetStateProperty.all(null),
                               ),
-                              child: Container(
-                                alignment: Alignment.center,
-                                constraints: const BoxConstraints(
-                                  minHeight: 50,
+                              onPressed:
+                                  (isValid && !_loading) ? seconnecter : null,
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF00C9A7),
+                                      Color(0xFF005F73)
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(30),
                                 ),
-                                child: const Text(
-                                  "Se connecter",
-                                  style: TextStyle(
-                                      fontSize: 16, color: Colors.white),
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  constraints: const BoxConstraints(
+                                    minHeight: 50,
+                                  ),
+                                  child: _loading
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Colors.white),
+                                          ),
+                                        )
+                                      : const Text(
+                                          "Se connecter",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.white),
+                                        ),
                                 ),
                               ),
                             ),
@@ -259,6 +282,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void seconnecter() async {
     try {
+      setState(() => _loading = true);
       final authService = AuthService();
       final utilisateur = await authService.seconnecter(
           emailController.text, passwordController.text);
@@ -321,10 +345,63 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } catch (e) {
+      final message = e.toString();
+      String friendly;
+      if (message.contains('TimeoutException')) {
+        friendly =
+            'Délai dépassé: impossible de joindre le serveur. Vérifie que l\'API tourne et que l\'adresse est correcte.';
+      } else if (message.toLowerCase().contains('failed host lookup') ||
+          message.toLowerCase().contains('socket')) {
+        friendly =
+            'Connexion impossible: vérifie ta connexion réseau et l\'adresse du serveur.';
+      } else {
+        friendly = message.replaceFirst('Exception: ', '');
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : ${e.toString()}')),
+        SnackBar(content: Text(friendly)),
       );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _showApiConfigDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final current =
+        prefs.getString('api_base_url_override') ?? ApiConfig.baseUrl;
+    final controller = TextEditingController(text: current);
+
+    // ignore: use_build_context_synchronously
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Configurer l\'URL de l\'API'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'http://hote:port/api'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) {
+                await prefs.setString('api_base_url_override', value);
+                if (!mounted) return;
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Adresse API sauvegardée.')),
+                );
+              }
+            },
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
