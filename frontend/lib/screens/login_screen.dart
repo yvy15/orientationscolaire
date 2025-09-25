@@ -272,6 +272,12 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setBool('estComplet', utilisateur.estComplet);
         await prefs.setInt('id', utilisateur.id ?? 0);
 
+        // Ajout : stocker l'id et le nom de l'utilisateur connecté en tant qu'établissement
+        if (utilisateur.role == 'Etablissement') {
+          await prefs.setInt('etablissement_id', utilisateur.id);
+          await prefs.setString('etablissementNom', utilisateur.nom_user);
+        }
+
         switch (utilisateur.role) {
           case 'Etablissement':
             Navigator.push(

@@ -1,10 +1,21 @@
-// MessageService.dart
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:frontend/Config/ApiConfig.dart';
 
 class MessageService {
   static final String baseUrl = "${ApiConfig.baseUrl}/messages";
+
+  // Récupérer l'id de l'utilisateur de l'établissement affilié à un apprenant
+  static Future<int?> getEtablissementUtilisateurId(int apprenantId) async {
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/apprenants/$apprenantId/etablissement-utilisateur-id'));
+    if (response.statusCode == 200) {
+      return int.tryParse(response.body);
+    } else {
+      print('Erreur récupération id utilisateur établissement : ${response.body}');
+      return null;
+    }
+  }
 
   // Récupérer le fil de discussion entre deux utilisateurs
   static Future<List<Map<String, dynamic>>> getFilDiscussion(int user1Id, int user2Id) async {
@@ -43,8 +54,7 @@ class MessageService {
   }
 
 
-
-  // Récupérer toutes les conversations d’un utilisateur (expéditeur OU destinataire)
+// Récupérer toutes les conversations d’un utilisateur (expéditeur OU destinataire)
 static Future<List<Map<String, dynamic>>> getConversationsUser(int utilisateurId) async {
   final response = await http.get(Uri.parse('$baseUrl/conversations-user?utilisateurId=$utilisateurId'));
   if (response.statusCode == 200) {
@@ -55,5 +65,23 @@ static Future<List<Map<String, dynamic>>> getConversationsUser(int utilisateurId
 }
 
   static Future<void> supprimerMessage(int messageId) async {}
+
+
+  static Future<Map<String, dynamic>?> getConseiller(int apprenantId) async {
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/apprenants/$apprenantId/conseiller'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Si le backend renvoie un objet Utilisateur
+      if (data is Map<String, dynamic> && data.containsKey('id')) {
+        return data;
+      }
+      // Si le backend renvoie un message d'erreur
+      return null;
+    } else {
+      // Gérer les erreurs explicites du backend
+      print('Erreur récupération conseiller : ${response.body}');
+      return null;
+    }
+  }
 
 }

@@ -52,7 +52,6 @@ public interface ApprenantRepository extends JpaRepository<Apprenant, Long> {
 
     Apprenant findByUtilisateurEmail(String email);
 
-
     
 
 }

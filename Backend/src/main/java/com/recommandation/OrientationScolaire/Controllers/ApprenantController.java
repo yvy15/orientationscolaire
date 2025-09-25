@@ -1,10 +1,12 @@
 package com.recommandation.OrientationScolaire.Controllers;
 
 import com.recommandation.OrientationScolaire.Models.Apprenant;
+import com.recommandation.OrientationScolaire.Models.Etablissement;
 import com.recommandation.OrientationScolaire.Packages.ApprenantIndependantRequest;
 import com.recommandation.OrientationScolaire.Packages.ApprenantRequest;
 import com.recommandation.OrientationScolaire.Repository.ApprenantRepository;
 import com.recommandation.OrientationScolaire.Services.ApprenantService;
+import com.recommandation.OrientationScolaire.Models.Utilisateur;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -104,7 +106,6 @@ public ResponseEntity<?> mettreAJourProfil(
 }
 
 
-
     @GetMapping("/matricule-by-email")
 public ResponseEntity<String> getMatriculeByEmail(@RequestParam String email) {
     Apprenant apprenant = apprenantRepository.findByUtilisateurEmail(email);
@@ -115,5 +116,29 @@ public ResponseEntity<String> getMatriculeByEmail(@RequestParam String email) {
         return ResponseEntity.notFound().build();
     }
 }
+
+
+@GetMapping("/{apprenantId}/conseiller")
+public ResponseEntity<Utilisateur> getConseiller(@PathVariable Long apprenantId) {
+    Apprenant apprenant = apprenantRepository.findById(apprenantId).orElse(null);
+    if (apprenant == null || apprenant.getEtablissement() == null) {
+        return ResponseEntity.notFound().build();
+    }
+    Utilisateur conseiller = apprenant.getEtablissement().getUtilisateur();
+    return ResponseEntity.ok(conseiller);
+}
+
+
+
+    // Endpoint pour récupérer l'id de l'utilisateur de l'établissement affilié à un apprenant
+    @GetMapping("/{apprenantId}/etablissement-utilisateur-id")
+    public ResponseEntity<Long> getEtablissementUtilisateurId(@PathVariable Long apprenantId) {
+        Apprenant apprenant = apprenantRepository.findById(apprenantId).orElse(null);
+        if (apprenant == null || apprenant.getEtablissement() == null || apprenant.getEtablissement().getUtilisateur() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Long utilisateurId = apprenant.getEtablissement().getUtilisateur().getId();
+        return ResponseEntity.ok(utilisateurId);
+    }
 
 }

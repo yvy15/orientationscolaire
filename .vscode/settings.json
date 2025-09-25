@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "plyconfig.json": "jsonc"
-    }
+    },
+    "java.compile.nullAnalysis.mode": "disabled"
 }

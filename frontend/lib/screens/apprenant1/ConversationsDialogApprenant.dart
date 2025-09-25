@@ -2,23 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:frontend/services/MessageService.dart';
 import 'package:frontend/screens/etablissment/messagerie/messageDashboard.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ConversationsDialogApprenant extends StatefulWidget {
   final int userId;
 
+  final String etablissementNom;
+
   const ConversationsDialogApprenant({
     super.key,
     required this.userId,
-    required int etablissementId, // conservé comme dans ton code original
+    required this.etablissementNom, 
+    required int etablissementId,
   });
 
   @override
-  State<ConversationsDialogApprenant> createState() => _ConversationsDialogApprenantState();
+  State<ConversationsDialogApprenant> createState() =>
+      _ConversationsDialogApprenantState();
 }
 
-class _ConversationsDialogApprenantState extends State<ConversationsDialogApprenant> {
+class _ConversationsDialogApprenantState
+    extends State<ConversationsDialogApprenant> {
   List<Map<String, dynamic>> conversations = [];
   bool isLoading = true;
+  int? etablissementUserId;
 
   @override
   void initState() {
@@ -27,15 +34,35 @@ class _ConversationsDialogApprenantState extends State<ConversationsDialogAppren
   }
 
   Future<void> chargerConversations() async {
-    setState(() => isLoading = true);
+  if (!mounted) return;
+  setState(() => isLoading = true);
     try {
-      // utilise getConversationsUser si tu l'as ; sinon adapte ton MessageService pour l'ajouter.
       final convs = await MessageService.getConversationsUser(widget.userId);
+      // Récupérer l'id utilisateur de l'établissement affilié à l'apprenant
+      final etablissementId = await MessageService.getEtablissementUtilisateurId(widget.userId);
+  final etablissementNom = widget.etablissementNom;
+      bool etabDejaDansListe = false;
+      if (etablissementId != null) {
+        etabDejaDansListe = convs.any((conv) =>
+          (conv['expediteur']?['id'] == etablissementId || conv['destinataire']?['id'] == etablissementId)
+        );
+      }
+      List<Map<String, dynamic>> convsFinal = List.from(convs);
+      if (etablissementId != null && !etabDejaDansListe) {
+        convsFinal.insert(0, {
+          "expediteur": {"id": etablissementId, "nom_user": etablissementNom},
+          "contenu": "Contact établissement disponible",
+          "dateEnvoi": null
+        });
+      }
+      if (!mounted) return;
       setState(() {
-        conversations = convs;
+        conversations = convsFinal;
         isLoading = false;
+        etablissementUserId = etablissementId;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => isLoading = false);
       print("Erreur chargement conversations apprenant : $e");
     }
@@ -63,7 +90,8 @@ class _ConversationsDialogApprenantState extends State<ConversationsDialogAppren
             const SizedBox(height: 6),
             const Text(
               "Mes conversations",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
+              style: TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
             ),
             const SizedBox(height: 6),
             const Divider(),
@@ -76,31 +104,41 @@ class _ConversationsDialogApprenantState extends State<ConversationsDialogAppren
                           itemCount: conversations.length,
                           itemBuilder: (context, index) {
                             final conv = conversations[index];
-                            final autreUser = conv['expediteur']['id'] == widget.userId
+                            final autreUser = conv['expediteur']?['id'] == widget.userId
                                 ? conv['destinataire']
                                 : conv['expediteur'];
 
                             final dernierMessage = conv['contenu'] ?? '';
                             final heure = formaterDate(conv['dateEnvoi']);
+                            final isEtablissement = autreUser?['id'] == etablissementUserId;
+                            final nomAffiche = isEtablissement
+                              ? widget.etablissementNom
+                              : (autreUser?['nom_user'] ?? "Utilisateur inconnu");
 
                             return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 6, horizontal: 4),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                               elevation: 2,
                               child: ListTile(
                                 leading: CircleAvatar(
                                   radius: 24,
                                   backgroundColor: Colors.teal[300],
                                   child: Text(
-                                    (autreUser?['nom_user'] ?? "U").isNotEmpty
-                                        ? (autreUser?['nom_user'] ?? "U")[0].toUpperCase()
+                                    nomAffiche.isNotEmpty
+                                        ? nomAffiche[0].toUpperCase()
                                         : "U",
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 title: Text(
-                                  autreUser?['nom_user'] ?? "Utilisateur inconnu",
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  nomAffiche,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16),
                                 ),
                                 subtitle: Text(
                                   dernierMessage,
@@ -110,7 +148,8 @@ class _ConversationsDialogApprenantState extends State<ConversationsDialogAppren
                                 ),
                                 trailing: Text(
                                   heure,
-                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.grey[600]),
                                 ),
                                 onTap: () {
                                   Navigator.pop(context);
@@ -120,7 +159,7 @@ class _ConversationsDialogApprenantState extends State<ConversationsDialogAppren
                                       builder: (_) => MessagerieScreen(
                                         expediteurId: widget.userId,
                                         destinataireId: autreUser?['id'],
-                                        expediteurNom: autreUser?['nom_user'] ?? '',
+                                        expediteurNom: nomAffiche,
                                       ),
                                     ),
                                   );

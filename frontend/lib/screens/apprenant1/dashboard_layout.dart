@@ -136,6 +136,7 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
                   builder: (_) => ConversationsDialogApprenant(
                     userId: widget.utilisateur.id, 
                     etablissementId: widget.utilisateur.id,
+                     etablissementNom: '',
                   ),
                 );
               },

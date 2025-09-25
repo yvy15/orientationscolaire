@@ -5,6 +5,7 @@ import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/apprenant1/ConversationsDialogApprenant.dart';
 import 'package:frontend/screens/apprenant1/dashboard_layout.dart';
 import 'package:frontend/screens/apprenant1/page_resultat1.dart';
+import 'package:frontend/services/MessageService.dart';
 import 'package:frontend/services/test_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -190,7 +191,7 @@ Ne retourne que du JSON valide et uniquement en français.
     }
   }
 
-  String metiersList = metiers.where((m) => m != null && m.isNotEmpty).join(', ');
+  String metiersList = metiers.where((m) => m.isNotEmpty).join(', ');
 
   // 🧠 Construction du prompt
 // ...existing code...
@@ -361,25 +362,50 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
                           
                           TextButton(
                       onPressed: () async {
-                        // Récupérer les infos de l'établissement / conseiller connecté
-                        final prefs = await SharedPreferences.getInstance();
-                        final int? etablissementId = prefs.getInt('etablissement_id'); // id de l'établissement connecté
-                        final String? nomConseiller = prefs.getString('etablissementNom');
+                        // Récupérer l'id de l'utilisateur connecté en tant qu'établissement (conseiller)
 
-                        if (widget.utilisateur.id != null ) {
-                          Navigator.pop(context); // ferme le dialogue des résultats
+                        // On récupère l'id utilisateur de l'établissement affilié à l'apprenant
+                        final conseillerId = await MessageService.getEtablissementUtilisateurId(widget.utilisateur.id);
+                        if (conseillerId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Impossible de trouver les informations du conseiller.')),
+                          );
+                          return;
+                        }
+                        final conseillerNom = widget.nomEtablissement;
+
+                        // Chercher si une conversation existe déjà avec le conseiller
+                        final conversations = await MessageService.getConversationsUser(widget.utilisateur.id);
+                        final conversationExistante = conversations.firstWhere(
+                          (conv) =>
+                            (conv['expediteur']?['id'] == conseillerId || conv['destinataire']?['id'] == conseillerId),
+                          orElse: () => {},
+                        );
+
+                        Navigator.pop(context); // ferme le dialogue des résultats
+                        if (conversationExistante.isNotEmpty) {
+                          // Ouvre directement la discussion existante
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => ConversationsDialogApprenant(
-                                userId: widget.utilisateur.id, // l'apprenant connecté
-                                etablissementId: widget.utilisateur.id,         // l'établissement connecté
+                              builder: (_) => MessagerieScreen(
+                                expediteurId: widget.utilisateur.id,
+                                destinataireId: conseillerId,
+                                expediteurNom: conseillerNom,
                               ),
                             ),
                           );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Impossible de trouver les informations du conseiller.')),
+                          // Ouvre le popup avec le conseiller affiché comme contact
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ConversationsDialogApprenant(
+                                userId: widget.utilisateur.id,
+                                etablissementNom: widget.nomEtablissement,
+                                etablissementId: conseillerId,
+                              ),
+                            ),
                           );
                         }
                       },
