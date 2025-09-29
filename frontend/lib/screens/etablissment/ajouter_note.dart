@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:frontend/models/Classe.dart';
 import 'package:frontend/models/Matiere.dart';
@@ -14,6 +15,7 @@ class AjouterNoteScreen extends StatefulWidget {
   @override
   State<AjouterNoteScreen> createState() => _AjouterNoteScreenState();
 }
+
 
 class _AjouterNoteScreenState extends State<AjouterNoteScreen> {
   String? _classeSelectionnee;
@@ -33,6 +35,16 @@ class _AjouterNoteScreenState extends State<AjouterNoteScreen> {
   final List<String> _typesEvaluation = ['Examen', 'Devoir', 'Interrogation'];
   int? _noteEnEditionId;
 
+  // Ajout de la validation pour la note
+  bool _isNoteValide(String note) {
+    final cleaned = note.trim().replaceAll(',', '.');
+    // Vérifie qu'il n'y a pas plus d'un point
+    if ('.'.allMatches(cleaned).length > 1) return false;
+    // Vérifie que c'est bien un nombre décimal positif
+    final value = double.tryParse(cleaned);
+    return value != null && value >= 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -40,12 +52,18 @@ class _AjouterNoteScreenState extends State<AjouterNoteScreen> {
     _chargerNotes();
   }
 
-  Future<void> _chargerNotes() async {
-    try {
-      _notes = await NoteService().getNotes();
-      setState(() {});
-    } catch (e) {}
+ Future<void> _chargerNotes() async {
+  try {
+    // Récupère les notes directement depuis le service
+    _notes = await NoteService().getNotesEtablissementConnecte();
+    setState(() {});
+  } catch (e) {
+    print("Erreur lors du chargement des notes : $e");
   }
+}
+
+
+
 
   Future<String?> _getUtilisateurEmail() async {
     final prefs = await SharedPreferences.getInstance();
@@ -125,18 +143,27 @@ class _AjouterNoteScreenState extends State<AjouterNoteScreen> {
       return;
     }
 
+    final noteText = _noteController.text.trim();
+    if (!_isNoteValide(noteText)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Note invalide')));
+      return;
+    }
+
     final apprenantObj = _apprenants.firstWhere(
-            (a) => a['matricule'] == _matriculeSelectionne,
+        (a) => a['matricule'] == _matriculeSelectionne,
         orElse: () => <String, dynamic>{});
     if (apprenantObj['id'] == null) return;
 
+    final noteValue = double.tryParse(noteText.replaceAll(',', '.')) ?? 0.0;
     final noteData = {
-      'notes': double.tryParse(_noteController.text.trim()) ?? 0.0,
+      'notes': noteValue,
       'apprenant': {'id': apprenantObj['id']},
       'matiere': {'id': _matiereSelectionnee!.id},
       'typeEval': _typeEvalSelectionne,
       'dateEval': _dateEvaluation!.toIso8601String(),
     };
+    print('Note envoyée au backend : $noteData');
 
     await NoteService().ajouterNote(noteData);
     _noteController.clear();

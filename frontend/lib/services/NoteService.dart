@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:frontend/Config/ApiConfig.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NoteService {
   static final String baseUrl = "${ApiConfig.baseUrl}/notes";
@@ -54,6 +55,29 @@ class NoteService {
     }
   }
 
+
+  // Récupérer les notes de l'établissement connecté (utilisateur authentifié)
+Future<List<Map<String, dynamic>>> getNotesEtablissementConnecte() async {
+  final prefs = await SharedPreferences.getInstance();
+  final email = prefs.getString('email');
+
+  if (email == null || email.isEmpty) {
+    throw Exception('Email de l\'utilisateur non trouvé.');
+  }
+  
+  // Utilise le nouvel endpoint /by-user-email
+  final uri = Uri.parse('$baseUrl/by-user-email').replace(
+    queryParameters: {'email': email},
+  );
+
+  final response = await http.get(uri);
+
+  if (response.statusCode == 200) {
+    return List<Map<String, dynamic>>.from(json.decode(response.body));
+  } else {
+    throw Exception('Erreur lors du chargement des notes');
+  }
+}
 
 
 }

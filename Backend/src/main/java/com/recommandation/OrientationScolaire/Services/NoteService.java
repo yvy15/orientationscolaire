@@ -1,3 +1,4 @@
+
 package com.recommandation.OrientationScolaire.Services;
 
 import com.recommandation.OrientationScolaire.Models.Note;
@@ -57,6 +58,8 @@ public class NoteService {
 }
 
 
-
+public List<Note> getNotesByEtablissement(int etablissementId) {
+    return noteRepository.findByApprenant_Etablissement_Id(etablissementId);
 }
 
+}
