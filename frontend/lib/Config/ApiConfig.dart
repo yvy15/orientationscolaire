@@ -10,7 +10,7 @@ class ApiConfig {
     if (kIsWeb) return 'http://127.0.0.1:8080/api';
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'http://10.0.2.2:8080/api';
+        return 'http://10.164.124.253:8080/api';
       default:
         return 'http://127.0.0.1:8080/api';
     }

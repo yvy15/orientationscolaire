@@ -207,7 +207,7 @@ public class TestPsychotechniqueController {
             // Enregistrer en BDD
             testPsychotechniqueRepository.save(test);
 
-            return ResponseEntity.ok("✅ Test enregistré avec succès pour l’apprenant " + apprenant.getMatricule());
+            return ResponseEntity.ok(" Test enregistré avec succès pour l’apprenant " + apprenant.getMatricule());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -215,4 +215,29 @@ public class TestPsychotechniqueController {
                     .body("❌ Erreur lors de l'enregistrement du test : " + e.getMessage());
         }
     }
+
+     @GetMapping("/historique/{email}")
+    public ResponseEntity<List<Test_psychotechnique>> getHistoriqueByEmail(@PathVariable String email) {
+        // 1. Trouver l'utilisateur
+        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
+        if (utilisateurOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 2. Trouver l'apprenant lié
+        Optional<Apprenant> apprenantOpt = apprenantRepository.findByUtilisateur(utilisateurOpt.get());
+        if (apprenantOpt.isEmpty()) {
+            // Si l'utilisateur existe mais n'a pas de profil d'Apprenant complet
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(List.of()); 
+        }
+
+        // 3. Récupérer les tests, triés par date (du plus récent au plus ancien)
+        // NOTE: Assurez-vous d'avoir la méthode findByApprenantOrderByDatePassageDesc dans votre Repository.
+        List<Test_psychotechnique> historique = 
+            testPsychotechniqueRepository.findByApprenantOrderByDatePassageDesc(apprenantOpt.get());
+
+        // 4. Retourner l'historique
+        return ResponseEntity.ok(historique);
+    }
+
 }

@@ -12,7 +12,7 @@ class Utilisateur{
     required this.email,
     required this.role,
     this.estComplet = false, // Valeur par défaut pour un booléen
-    this.id = 0, // Valeur par défaut pour un entier
+    this.id = 0,// Valeur par défaut pour un entier
     
   });
 

@@ -318,6 +318,8 @@ class HomeApprenantState extends State<HomeApprenant>
     super.dispose();
   }
   void changerSlogan() {
+    
+    if (!mounted) return;
     setState(() => sloganIndex = (sloganIndex + 1) % slogans.length);
     _controller.forward(from: 0);
     Future.delayed(const Duration(seconds: 4), changerSlogan);

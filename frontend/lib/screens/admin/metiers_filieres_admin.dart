@@ -71,31 +71,34 @@ class _MetiersFiliereAdminState extends State<MetiersFiliereAdmin> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(metier != null ? "Modifier le métier" : "Ajouter un métier / secteur"),
-        content: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  initialValue: nomMetier,
-                  decoration: const InputDecoration(labelText: "Nom du métier"),
-                  validator: (value) => value == null || value.isEmpty ? "Veuillez entrer un nom" : null,
-                  onSaved: (value) => nomMetier = value!,
-                ),
-                TextFormField(
-                  initialValue: secteurMetier,
-                  decoration: const InputDecoration(labelText: "Secteur d'activité"),
-                  validator: (value) => value == null || value.isEmpty ? "Veuillez entrer un secteur" : null,
-                  onSaved: (value) => secteurMetier = value!,
-                ),
-                TextFormField(
-                  initialValue: descriptionMetier,
-                  decoration: const InputDecoration(labelText: "Description"),
-                  maxLines: 3,
-                  validator: (value) => value == null || value.isEmpty ? "Veuillez entrer une description" : null,
-                  onSaved: (value) => descriptionMetier = value!,
-                ),
-              ],
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    initialValue: nomMetier,
+                    decoration: const InputDecoration(labelText: "Nom du métier"),
+                    validator: (value) => value == null || value.isEmpty ? "Veuillez entrer un nom" : null,
+                    onSaved: (value) => nomMetier = value!,
+                  ),
+                  TextFormField(
+                    initialValue: secteurMetier,
+                    decoration: const InputDecoration(labelText: "Secteur d'activité"),
+                    validator: (value) => value == null || value.isEmpty ? "Veuillez entrer un secteur" : null,
+                    onSaved: (value) => secteurMetier = value!,
+                  ),
+                  TextFormField(
+                    initialValue: descriptionMetier,
+                    decoration: const InputDecoration(labelText: "Description"),
+                    maxLines: 3,
+                    validator: (value) => value == null || value.isEmpty ? "Veuillez entrer une description" : null,
+                    onSaved: (value) => descriptionMetier = value!,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -134,82 +137,129 @@ class _MetiersFiliereAdminState extends State<MetiersFiliereAdmin> {
   Widget build(BuildContext context) {
     final metiersFiltres = _filtrerEtTrier();
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Rechercher un métier',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuery = value;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(width: 10),
-              DropdownButton<String>(
-                value: tri,
-                items: const [
-                  DropdownMenuItem(value: 'date', child: Text('Par date')),
-                  DropdownMenuItem(value: 'alpha', child: Text('Par nom')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    tri = value!;
-                  });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: isNarrow
+                  ? Column(
+                      children: [
+                        TextField(
+                          decoration: const InputDecoration(
+                            hintText: 'Rechercher un métier',
+                            prefixIcon: Icon(Icons.search),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              searchQuery = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(child: _buildSortDropdown()),
+                            const SizedBox(width: 10),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.add),
+                              label: const Text("Ajouter"),
+                              onPressed: () => _ouvrirFormulaire(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            decoration: const InputDecoration(
+                              hintText: 'Rechercher un métier',
+                              prefixIcon: Icon(Icons.search),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                searchQuery = value;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        _buildSortDropdown(),
+                        const SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text("Ajouter un métier / secteur"),
+                          onPressed: () => _ouvrirFormulaire(),
+                        ),
+                      ],
+                    ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: metiersFiltres.length,
+                itemBuilder: (context, index) {
+                  final metier = metiersFiltres[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      leading: const Icon(Icons.work, color: Colors.blue),
+                      title: Text(metier["nom"]),
+                      subtitle: isNarrow
+                          ? Text(metier["secteur"])
+                          : Text("${metier["secteur"]} - ${metier["description"]}"),
+                      trailing: Wrap(
+                        spacing: 8,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.orange),
+                            onPressed: () => _ouvrirFormulaire(metier: metier),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _supprimerMetier(metier),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 },
               ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: metiersFiltres.length,
-            itemBuilder: (context, index) {
-              final metier = metiersFiltres[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  leading: const Icon(Icons.work, color: Colors.blue),
-                  title: Text(metier["nom"]),
-                  subtitle: Text("${metier["secteur"]} - ${metier["description"]}"),
-                  trailing: Wrap(
-                    spacing: 8,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.orange),
-                        onPressed: () => _ouvrirFormulaire(metier: metier),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _supprimerMetier(metier),
-                      ),
-                    ],
-                  ),
+            ),
+            if (!isNarrow)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text("Ajouter un métier / secteur"),
+                  onPressed: () => _ouvrirFormulaire(),
                 ),
-              );
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text("Ajouter un métier / secteur"),
-            onPressed: () => _ouvrirFormulaire(),
-          ),
-        ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSortDropdown() {
+    return DropdownButton<String>(
+      value: tri,
+      items: const [
+        DropdownMenuItem(value: 'date', child: Text('Par date')),
+        DropdownMenuItem(value: 'alpha', child: Text('Par nom')),
       ],
+      onChanged: (value) {
+        setState(() {
+          tri = value!;
+        });
+      },
     );
   }
 }

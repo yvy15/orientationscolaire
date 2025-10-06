@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/models/Utilisateur.dart';
 import 'package:frontend/screens/apprenant1/ConversationsDialogApprenant.dart';
 import 'package:frontend/screens/apprenant1/test_psychotechnique1.dart';
+import 'package:frontend/screens/historique_screen.dart';
 import 'package:frontend/services/Etablissementservice.dart';
 import 'home_apprenant.dart';
 
@@ -36,7 +37,7 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
       ),
       const PlaceholderPage(title: 'Gérer son profil'),
       const PlaceholderPage(title: 'Modifier son secteur'),
-      const PlaceholderPage(title: 'Historique des tests'),
+    TestHistoryScreen(utilisateur: widget.utilisateur), 
     ];
   }
 
@@ -123,14 +124,14 @@ class _DashboardLayoutApprenantState extends State<DashboardLayoutApprenant> {
                 Navigator.pop(context);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Historique des tests'),
-              onTap: () {
-                setState(() => selectedIndex = 3);
-                Navigator.pop(context);
-              },
-            ),
+           ListTile(
+                leading: const Icon(Icons.history),
+                title: const Text('Historique des tests'),
+                onTap: () {
+                  setState(() => selectedIndex = 4); 
+                  Navigator.pop(context);
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.chat_bubble_outline),
               title: const Text('Messagerie'),

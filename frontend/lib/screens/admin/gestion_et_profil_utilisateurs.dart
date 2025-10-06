@@ -81,24 +81,27 @@ class _GestionEtProfilUtilisateursState
       context: context,
       builder: (context) => AlertDialog(
         title: Text(isEdit ? "Modifier l'utilisateur" : "Ajouter un utilisateur"),
-        content: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  initialValue: _nom,
-                  decoration: const InputDecoration(labelText: "Nom"),
-                  validator: (value) => value == null || value.isEmpty ? "Nom requis" : null,
-                  onSaved: (value) => _nom = value!,
-                ),
-                TextFormField(
-                  initialValue: _email,
-                  decoration: const InputDecoration(labelText: "Email"),
-                  validator: (value) => value == null || value.isEmpty ? "Email requis" : null,
-                  onSaved: (value) => _email = value!,
-                ),
-              ],
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    initialValue: _nom,
+                    decoration: const InputDecoration(labelText: "Nom"),
+                    validator: (value) => value == null || value.isEmpty ? "Nom requis" : null,
+                    onSaved: (value) => _nom = value!,
+                  ),
+                  TextFormField(
+                    initialValue: _email,
+                    decoration: const InputDecoration(labelText: "Email"),
+                    validator: (value) => value == null || value.isEmpty ? "Email requis" : null,
+                    onSaved: (value) => _email = value!,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -199,116 +202,197 @@ class _GestionEtProfilUtilisateursState
         }
       });
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: 'Rechercher...',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                  onChanged: (value) => setState(() => _recherche = value),
-                ),
-              ),
-              const SizedBox(width: 10),
-              DropdownButton<String>(
-                value: _tri,
-                items: const [
-                  DropdownMenuItem(value: 'Date de création', child: Text("Date de création")),
-                  DropdownMenuItem(value: 'Nom (A-Z)', child: Text("Nom (A-Z)")),
-                ],
-                onChanged: (value) => setState(() => _tri = value!),
-              ),
-              const SizedBox(width: 10),
-              IconButton(
-                icon: const Icon(Icons.add_circle, color: Colors.green),
-                tooltip: "Ajouter un utilisateur",
-                onPressed: () => _ouvrirFormulaire(isEdit: false),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Row(
-            children: [
-              Flexible(
-                flex: 3,
-                child: DefaultTabController(
-                  length: 3,
-                  child: Column(
-                    children: [
-                      TabBar(
-                        onTap: (index) => setState(() {
-                          _indexOnglet = index;
-                          _utilisateurSelectionne = null;
-                        }),
-                        tabs: _typesUtilisateurs.map((e) => Tab(text: e)).toList(),
-                        labelColor: Colors.blue.shade900,
-                        unselectedLabelColor: Colors.grey,
-                        indicatorColor: Colors.blue.shade900,
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: utilisateursAffiches.length,
-                          itemBuilder: (context, index) {
-                            final utilisateur = utilisateursAffiches[index];
-                            final selected = _utilisateurSelectionne == index;
+    return LayoutBuilder(builder: (context, constraints) {
+      final isNarrow = constraints.maxWidth < 900;
 
-                            return Card(
-                              color: selected ? Colors.blue.shade50 : null,
-                              child: ListTile(
-                                leading: const CircleAvatar(
-                                  backgroundImage: AssetImage("assets/images/avatar.png"),
+      final searchRow = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: 'Rechercher...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+                onChanged: (value) => setState(() => _recherche = value),
+              ),
+            ),
+            const SizedBox(width: 10),
+            DropdownButton<String>(
+              value: _tri,
+              items: const [
+                DropdownMenuItem(value: 'Date de création', child: Text("Date de création")),
+                DropdownMenuItem(value: 'Nom (A-Z)', child: Text("Nom (A-Z)")),
+              ],
+              onChanged: (value) => setState(() => _tri = value!),
+            ),
+            const SizedBox(width: 10),
+            IconButton(
+              icon: const Icon(Icons.add_circle, color: Colors.green),
+              tooltip: "Ajouter un utilisateur",
+              onPressed: () => _ouvrirFormulaire(isEdit: false),
+            ),
+          ],
+        ),
+      );
+
+      if (isNarrow) {
+        return Column(
+          children: [
+            searchRow,
+            DefaultTabController(
+              length: 3,
+              child: Column(
+                children: [
+                  TabBar(
+                    onTap: (index) => setState(() {
+                      _indexOnglet = index;
+                      _utilisateurSelectionne = null;
+                    }),
+                    tabs: _typesUtilisateurs.map((e) => Tab(text: e)).toList(),
+                    labelColor: Colors.blue.shade900,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.blue.shade900,
+                  ),
+                  SizedBox(
+                    height: 320,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: utilisateursAffiches.length,
+                      itemBuilder: (context, index) {
+                        final utilisateur = utilisateursAffiches[index];
+                        final selected = _utilisateurSelectionne == index;
+
+                        return Card(
+                          color: selected ? Colors.blue.shade50 : null,
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                              backgroundImage: AssetImage("assets/images/avatar.png"),
+                            ),
+                            title: Text(utilisateur["Nom"]),
+                            subtitle: Text(utilisateur["Email"]),
+                            trailing: Wrap(
+                              spacing: 8,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.orange),
+                                  onPressed: () => _ouvrirFormulaire(
+                                      utilisateur: utilisateur, isEdit: true),
                                 ),
-                                title: Text(utilisateur["Nom"]),
-                                subtitle: Text(utilisateur["Email"]),
-                                trailing: Wrap(
-                                  spacing: 8,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, color: Colors.orange),
-                                      onPressed: () => _ouvrirFormulaire(
-                                          utilisateur: utilisateur, isEdit: true),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () => _supprimerUtilisateur(utilisateur),
-                                    ),
-                                  ],
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _supprimerUtilisateur(utilisateur),
                                 ),
-                                onTap: () => setState(() => _utilisateurSelectionne = index),
-                              ),
-                            );
-                          },
-                        ),
+                              ],
+                            ),
+                            onTap: () => setState(() => _utilisateurSelectionne = index),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: _utilisateurSelectionne == null
+                  ? const Center(child: Text("Sélectionnez un utilisateur"))
+                  : _ProfilUtilisateur(
+                      utilisateur: utilisateursAffiches[_utilisateurSelectionne!],
+                      onModifier: () => _ouvrirFormulaire(
+                        utilisateur: utilisateursAffiches[_utilisateurSelectionne!],
+                        isEdit: true,
                       ),
-                    ],
+                    ),
+            ),
+          ],
+        );
+      }
+
+      // wide layout (desktop/tablet)
+      return Column(
+        children: [
+          searchRow,
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  flex: 3,
+                  child: DefaultTabController(
+                    length: 3,
+                    child: Column(
+                      children: [
+                        TabBar(
+                          onTap: (index) => setState(() {
+                            _indexOnglet = index;
+                            _utilisateurSelectionne = null;
+                          }),
+                          tabs: _typesUtilisateurs.map((e) => Tab(text: e)).toList(),
+                          labelColor: Colors.blue.shade900,
+                          unselectedLabelColor: Colors.grey,
+                          indicatorColor: Colors.blue.shade900,
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: utilisateursAffiches.length,
+                            itemBuilder: (context, index) {
+                              final utilisateur = utilisateursAffiches[index];
+                              final selected = _utilisateurSelectionne == index;
+
+                              return Card(
+                                color: selected ? Colors.blue.shade50 : null,
+                                child: ListTile(
+                                  leading: const CircleAvatar(
+                                    backgroundImage: AssetImage("assets/images/avatar.png"),
+                                  ),
+                                  title: Text(utilisateur["Nom"]),
+                                  subtitle: Text(utilisateur["Email"]),
+                                  trailing: Wrap(
+                                    spacing: 8,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.orange),
+                                        onPressed: () => _ouvrirFormulaire(
+                                            utilisateur: utilisateur, isEdit: true),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () => _supprimerUtilisateur(utilisateur),
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () => setState(() => _utilisateurSelectionne = index),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const VerticalDivider(width: 1),
-              Flexible(
-                flex: 4,
-                child: _utilisateurSelectionne == null
-                    ? const Center(child: Text("Sélectionnez un utilisateur"))
-                    : _ProfilUtilisateur(
-                        utilisateur: utilisateursAffiches[_utilisateurSelectionne!],
-                        onModifier: () => _ouvrirFormulaire(
+                const VerticalDivider(width: 1),
+                Flexible(
+                  flex: 4,
+                  child: _utilisateurSelectionne == null
+                      ? const Center(child: Text("Sélectionnez un utilisateur"))
+                      : _ProfilUtilisateur(
                           utilisateur: utilisateursAffiches[_utilisateurSelectionne!],
-                          isEdit: true,
+                          onModifier: () => _ouvrirFormulaire(
+                            utilisateur: utilisateursAffiches[_utilisateurSelectionne!],
+                            isEdit: true,
+                          ),
                         ),
-                      ),
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }
 

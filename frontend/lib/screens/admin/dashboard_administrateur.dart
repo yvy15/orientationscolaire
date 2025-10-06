@@ -27,79 +27,91 @@ class _DashboardAdministrateurState extends State<DashboardAdministrateur> {
           return const Center(child: CircularProgressIndicator());
         }
         final stats = snapshot.data!;
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            children: [
-              // Diagramme circulaire pour les apprenants
-              Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Répartition des Apprenants",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      SizedBox(
-                        height: 180,
-                        child: PieChart(
-                          PieChartData(
-                            sections: [
-                              PieChartSectionData(
-                                value: (stats['scolarises'] ?? 0).toDouble(),
-                                color: Colors.blue,
-                                title: "Scolarisés",
-                                radius: 50,
-                                titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                              ),
-                              PieChartSectionData(
-                                value: (stats['independants'] ?? 0).toDouble(),
-                                color: Colors.orange,
-                                title: "Indépendants",
-                                radius: 50,
-                                titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 30,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text("Total : ${(stats['scolarises'] ?? 0) + (stats['independants'] ?? 0)}"),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Stats sous forme de cards
-              GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 1.6,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // adapt sizes based on width
+            final width = constraints.maxWidth;
+            final chartHeight = width < 600 ? 160.0 : (width < 1200 ? 220.0 : 320.0);
+            int crossAxisCount = 1;
+            if (width >= 1200) {
+              crossAxisCount = 3;
+            } else if (width >= 700) {
+              crossAxisCount = 2;
+            }
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
                 children: [
-                  CarteDashboard(
-                    couleur: const Color(0xFF2E7D32),
-                    icone: Icons.account_balance,
-                    titre: "Établissements",
-                    valeur: "${stats['etablissements'] ?? 0}",
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          const Text(
+                            "Répartition des Apprenants",
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          SizedBox(
+                            height: chartHeight,
+                            child: PieChart(
+                              PieChartData(
+                                sections: [
+                                  PieChartSectionData(
+                                    value: (stats['scolarises'] ?? 0).toDouble(),
+                                    color: Colors.blue,
+                                    title: "Scolarisés",
+                                    radius: chartHeight / 4,
+                                    titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  ),
+                                  PieChartSectionData(
+                                    value: (stats['independants'] ?? 0).toDouble(),
+                                    color: Colors.orange,
+                                    title: "Indépendants",
+                                    radius: chartHeight / 4,
+                                    titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                                sectionsSpace: 2,
+                                centerSpaceRadius: chartHeight / 8,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text("Total : ${(stats['scolarises'] ?? 0) + (stats['independants'] ?? 0)}"),
+                        ],
+                      ),
+                    ),
                   ),
-                  CarteDashboard(
-                    couleur: const Color(0xFF6A1B9A),
-                    icone: Icons.people,
-                    titre: "Total Utilisateurs",
-                    valeur: "${stats['utilisateurs'] ?? 0}",
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 1.6,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      CarteDashboard(
+                        couleur: const Color(0xFF2E7D32),
+                        icone: Icons.account_balance,
+                        titre: "Établissements",
+                        valeur: "${stats['etablissements'] ?? 0}",
+                      ),
+                      CarteDashboard(
+                        couleur: const Color(0xFF6A1B9A),
+                        icone: Icons.people,
+                        titre: "Total Utilisateurs",
+                        valeur: "${stats['utilisateurs'] ?? 0}",
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

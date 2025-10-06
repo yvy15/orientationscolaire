@@ -71,78 +71,113 @@ class _LayoutAdministrateurState extends State<LayoutAdministrateur> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_titres[_selectedIndex]),
-        backgroundColor: const Color.fromARGB(97, 13, 126, 161),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Déconnexion',
-            onPressed: () async {
-              await _logout(context);
-            },
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: Container(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 900;
+
+        final appBar = AppBar(
+          title: Text(_titres[_selectedIndex]),
+          backgroundColor: const Color.fromARGB(97, 13, 126, 161),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Déconnexion',
+              onPressed: () async {
+                await _logout(context);
+              },
+            ),
+          ],
+        );
+
+        Widget sideMenu = Container(
+          width: 260,
           color: const Color.fromARGB(255, 2, 44, 56),
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              UserAccountsDrawerHeader(
-                accountName: Text(
-                  utilisateur.nom_user.isNotEmpty
-                      ? utilisateur.nom_user
-                      : "Administrateur",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+          child: SafeArea(
+            child: Column(
+              children: [
+                UserAccountsDrawerHeader(
+                  accountName: Text(
+                    utilisateur.nom_user.isNotEmpty
+                        ? utilisateur.nom_user
+                        : "Administrateur",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  accountEmail: Text(utilisateur.email.isNotEmpty
+                      ? utilisateur.email
+                      : "admin@exemple.com"),
+                  currentAccountPicture: const CircleAvatar(
+                    backgroundImage: AssetImage("assets/img1.jpeg"),
+                  ),
+                  decoration:
+                      const BoxDecoration(color: Color.fromARGB(255, 2, 41, 51)),
                 ),
-                accountEmail: Text(utilisateur.email.isNotEmpty
-                    ? utilisateur.email
-                    : "admin@exemple.com"),
-                currentAccountPicture: const CircleAvatar(
-                  backgroundImage: AssetImage("assets/img1.jpeg"),
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildDrawerItem(
+                        icon: Icons.dashboard,
+                        text: "Tableau de bord",
+                        index: 0,
+                      ),
+                      _buildDrawerItem(
+                        icon: Icons.group,
+                        text: "Gestion utilisateurs",
+                        index: 1,
+                      ),
+                      _buildDrawerItem(
+                        icon: Icons.settings,
+                        text: "Paramètres",
+                        index: 2,
+                      ),
+                      _buildDrawerItem(
+                        icon: Icons.work,
+                        text: "Métiers & Filières",
+                        index: 3,
+                      ),
+                      const Divider(color: Colors.white54),
+                      ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.white),
+                        title: const Text(
+                          'Déconnexion',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onTap: () async {
+                          await _logout(context);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                decoration:
-                    const BoxDecoration(color: Color.fromARGB(255, 2, 41, 51)),
-              ),
-              _buildDrawerItem(
-                icon: Icons.dashboard,
-                text: "Tableau de bord",
-                index: 0,
-              ),
-              _buildDrawerItem(
-                icon: Icons.group,
-                text: "Gestion utilisateurs",
-                index: 1,
-              ),
-              _buildDrawerItem(
-                icon: Icons.settings,
-                text: "Paramètres",
-                index: 2,
-              ),
-              _buildDrawerItem(
-                icon: Icons.work,
-                text: "Métiers & Filières",
-                index: 3,
-              ),
-              const Divider(color: Colors.white54),
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.white),
-                title: const Text(
-                  'Déconnexion',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () async {
-                  await _logout(context);
-                },
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
-      body: _pages[_selectedIndex],
+        );
+
+        if (isWide) {
+          return Scaffold(
+            appBar: appBar,
+            body: Row(
+              children: [
+                sideMenu,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: _pages[_selectedIndex],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // narrow layout: keep the drawer
+        return Scaffold(
+          appBar: appBar,
+          drawer: Drawer(child: sideMenu),
+          body: _pages[_selectedIndex],
+        );
+      },
     );
   }
 

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/values/theme_controller.dart';
+
+// Assurez-vous d'appeler ThemeController.load() au démarrage de l'app (main)
 
 class ParametresSysteme extends StatefulWidget {
   const ParametresSysteme({super.key});
@@ -36,7 +39,8 @@ class _ParametresSystemeState extends State<ParametresSysteme> {
           value: modeSombre,
           onChanged: (val) {
             setState(() => modeSombre = val);
-            // TODO: appliquer thème sombre
+            // Appliquer le thème global via ThemeController
+            ThemeController.setMode(val ? ThemeMode.dark : ThemeMode.light);
           },
           secondary: const Icon(Icons.dark_mode),
         ),

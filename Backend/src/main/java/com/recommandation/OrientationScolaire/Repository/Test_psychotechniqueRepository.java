@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 public interface Test_psychotechniqueRepository extends JpaRepository<Test_psychotechnique, Long> {
@@ -25,5 +26,8 @@ public interface Test_psychotechniqueRepository extends JpaRepository<Test_psych
 
      int countByApprenant_Etablissement_Id(Integer etablissementId);
 
+
+     // Méthode pour récupérer les tests liés à un apprenant, triés par date
+    List<Test_psychotechnique> findByApprenantOrderByDatePassageDesc(Apprenant apprenant);
 
 }

@@ -1,5 +1,4 @@
 
-
 import 'dart:convert';
 import 'package:frontend/models/Test_psychotechnique.dart';
 import 'package:frontend/models/Utilisateur.dart';
@@ -72,7 +71,7 @@ class TestService {
     }
   }
 
-  /// ✅ Enregistrer le test complet avec questions, réponses et résultats
+  ///  Enregistrer le test complet avec questions, réponses et résultats
   static Future<void> enregistrerTest(TestPsychotechnique test) async {
     final url = Uri.parse("$baseUrl/enregistrerTest");
     final response = await http.post(
@@ -80,16 +79,18 @@ class TestService {
       headers: {"Content-Type": "application/json"},
       body: jsonEncode(test.toJson()),
     );
+      print("Voici le resultat au format " + test.resultatsJson);
 
     if (response.statusCode == 200) {
-      print("✅ Test enregistré avec succès");
+    
+      print(" Test enregistré avec succès");
     } else {
-      print("❌ Erreur lors de l'enregistrement du test : ${response.statusCode}");
+      print(" Erreur lors de l'enregistrement du test : ${response.statusCode}");
       throw Exception("Erreur lors de l'enregistrement du test");
     }
   }
 
-  /// ✅ Analyser les résultats via Mistral et enregistrer le test en base
+  ///  Analyser les résultats via Mistral et enregistrer le test en base
   static Future<Map<String, dynamic>> analyserEtEnregistrerResultats({
     required String matricule,
     required String secteur,
@@ -168,7 +169,8 @@ Ne retourne que du JSON valide et uniquement en français.
       questionsJson: jsonEncode(questions),
       reponsesJson: jsonEncode(reponses),
       resultatsJson: jsonEncode(resultats),
-      utilisateur: utilisateur,
+      utilisateur: utilisateur, 
+      datePassage: '',
     );
 
     // Enregistrer le test en base
@@ -178,5 +180,27 @@ Ne retourne que du JSON valide et uniquement en français.
     return resultats;
   }
 
+/// Récupérer l'historique complet des tests pour un apprenant
+  static Future<List> getHistoriqueTests(String email) async {
+    final url = Uri.parse("$baseUrl/historique/$email");
+    
+    // NOTE: Si l'email n'est pas déjà stocké localement, vous devrez le passer ici.
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> body = jsonDecode(response.body);
+      
+      // Mappage vers votre modèle Dart (assurez-vous d'avoir TestPsychotechnique.fromJson)
+      return body.map((json) => TestPsychotechnique.fromJson(json)).toList(); 
+
+    } else if (response.statusCode == 204) {
+      // 204 No Content : Utilisateur trouvé, mais aucun test passé.
+      return [];
+    }
+    
+    else {
+      throw Exception("Erreur lors de la récupération de l'historique : ${response.statusCode}");
+    }
+  }
   
 }

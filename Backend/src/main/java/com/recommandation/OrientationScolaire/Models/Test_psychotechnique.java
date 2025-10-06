@@ -39,7 +39,6 @@ public class Test_psychotechnique{
 
     private LocalDateTime datePassage;
 
-
    @ManyToOne
    @JoinColumn(name = "apprenant_id")
    @JsonBackReference

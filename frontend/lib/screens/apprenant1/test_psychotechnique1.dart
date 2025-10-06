@@ -242,7 +242,7 @@ Format attendu :
 }
 Ne retourne que du JSON valide, parsable et uniquement en français.
 """;
-// ...existing code...;
+
 
     // 🚀 Appel à l’API Mistral
     final mistralResponse = await http.post(
@@ -269,9 +269,10 @@ Ne retourne que du JSON valide, parsable et uniquement en français.
           secteur: secteur,
           metiers: metiers,
           questionsJson: jsonEncode(questions),
-          reponsesJson: jsonEncode(reponses),
+          reponsesJson:  jsonEncode(reponses),
           resultatsJson: jsonEncode(resultats),
-          utilisateur: utilisateur,
+          utilisateur: utilisateur, 
+          datePassage: '',
         );
 
         await TestService.enregistrerTest(test);
